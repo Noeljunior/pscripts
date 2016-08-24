@@ -1,0 +1,3 @@
+#!/bin/bash
+
+xfconf-query -c xfce4-panel -p /panels/panel-1/output-name -s "$1"

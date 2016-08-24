@@ -1,0 +1,24 @@
+#!/bin/bash
+
+TOUCHSCREEN="ELAN Touchscreen"
+TOUCHOPTION="Coordinate Transformation Matrix"
+
+function dorotate() {
+    if  [ "$1" = "normal" ] ; then
+        xrandr -o normal
+        xinput set-prop "$TOUCHSCREEN" "$TOUCHOPTION" 1 0 0 0 1 0 0 0 1
+    elif [ "$1" = "left" ] ; then
+        xrandr -o left
+        xinput set-prop "$TOUCHSCREEN" "$TOUCHOPTION" 0 -1 1 1 0 0 0 0 1
+    elif [ "$1" = "right" ] ; then
+        xrandr -o right
+        xinput set-prop "$TOUCHSCREEN" "$TOUCHOPTION" 0 1 0 -1 0 1 0 0 1
+    elif [ "$1" = "inverted" ] ; then
+        xrandr -o inverted
+        xinput set-prop "$TOUCHSCREEN" "$TOUCHOPTION" -1 0 1 0 -1 1 0 0 1
+    else
+        echo "unknown rotation"
+    fi;
+}
+
+dorotate "$1"

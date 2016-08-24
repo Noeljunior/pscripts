@@ -1,0 +1,6 @@
+#!/bin/bash
+
+if [[ "$1" = "unmanage" ]] ; then
+    echo "unmanaged-devices=interface-name:wlp2s0"
+    sudo gedit /etc/NetworkManager/NetworkManager.conf
+fi;

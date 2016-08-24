@@ -1,0 +1,6 @@
+#!/bin/bash
+
+sudo echo "Swapping off..."
+sudo swapoff -a
+echo "Done. Turning swap on again"
+sudo swapon -a

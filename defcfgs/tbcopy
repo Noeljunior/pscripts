@@ -1,0 +1,52 @@
+4.8G    ./ZWAME
+4.0G    ./TERTULIA BROTERO VIDEO
+70G     ./SingStar PS2 DAAmiT Collection [19 disks]
+9.8G    ./RPIDOWN
+387M    ./OLD
+
+rsync -av -P ZWAME ../disk2te/NTFS/; rsync -av -P TERTULIA\ BROTERO\ VIDEO/ ../disk2te/NTFS/; rsync -av -P SingStar\ PS2\ DAAmiT\ Collection\ \[19\ disks\]/ ../disk2te/NTFS/; rsync -av -P RPIDOWN/ ../disk2te/NTFS/; rsync -av -P OLD/ ../disk2te/NTFS/; echo "FINISH"
+
+
+510G    ./Videosa
+        >>73G	/media/disk2t/Videos/CAMERAFILMAR
+        0	/media/disk2t/Videos/CONVERTED
+        8.0K	/media/disk2t/Videos/MOVIES
+        20G	/media/disk2t/Videos/RIP
+        492K	/media/disk2t/Videos/RUI
+        390G	/media/disk2t/Videos/Series
+        288K	/media/disk2t/Videos/subtitletoolen
+        306M	/media/disk2t/Videos/Suits S02E09 HDTV x264-ASAP[ettv]
+        15G	/media/disk2t/Videos/test
+        4.3G	/media/disk2t/Videos/[P]Vid - SARAU
+
+392G    ./Downloads
+        778M	/media/disk2t/Downloads/ANDROID
+        64M	/media/disk2t/Downloads/AvantiFFmepg
+        >>209G	/media/disk2t/Downloads/CDVD
+        >>90G	/media/disk2t/Downloads/P2P
+        2.2M	/media/disk2t/Downloads/Grupo de Jovens S. Pedro - Palheira - Juntos iremos - Patrícia Escaroupa e Tiago Levita
+        99M	/media/disk2t/Downloads/DRIVERS
+        191M	/media/disk2t/Downloads/TOOLS
+        9.6G	/media/disk2t/Downloads/SETUPS
+        425M	/media/disk2t/Downloads/DriverSweeper_2.1.0-[Guru3D.com]
+        >>67G	/media/disk2t/Downloads/GAMES
+        >>11G	/media/disk2t/Downloads/GPSTOMTOM
+        392G	/media/disk2t/Downloads/
+447G    ./ORGANIZED
+28K     ./System Volume Information
+2.8G    ./$RECYCLE.BIN
+
+124G    ./TODEL
+
+----- tasks ----
+>rsync -av -P /root/ntfs/Downloads/CDVD /root/buf/NTFS/Downloads/
+>rsync -av -P /root/ntfs/Downloads/GAMES /root/buf/NTFS/Downloads/
+
+>>rm -rv /root/ntfs/Downloads/CDVD /root/ntfs/Downloads/GAMES; echo "FINISH"; echo -e "\e[30;48;5;82m FINISH remove \e[0m"
+
+>>rsync -av -P /root/ntfs/Downloads/GPSTOMTOM /root/buf/NTFS/Downloads/; echo -e "\e[30;48;5;82m FINISH rsync \e[0m"
+>>rm -rv /root/ntfs/Downloads/GPSTOMTOM; echo -e "\e[30;48;5;82m FINISH \e[0m"
+
+>>rsync -av -P /root/ntfs/Videos/CAMERAFILMAR /root/buf/NTFS/Videos/; rsync -av -P /root/ntfs/Downloads/P2P /root/buf/NTFS/Downloads/; echo -e "\e[30;48;5;82m FINISH rsync \e[0m"
+>rm -rv /root/ntfs/Videos/CAMERAFILMAR /root/ntfs/Downloads/P2P; echo -e "\e[30;48;5;82m FINISH remove \e[0m"
+

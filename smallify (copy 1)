@@ -1,0 +1,29 @@
+#!/bin/bash
+
+
+function findall {
+    find "$1" \
+    -name '*.JPG' -o \
+    -name '*.jpg' -o \
+    -name '*.JEPG' -o \
+    -name '*.jpeg' \
+    | sort -h
+}
+
+function smally {
+    convert -quality 0% -strip -resize "2048x2048>" $1 -orient $1
+    echo converted $1
+}
+export -f smally
+
+SRCDIR=$1
+OUTDIR=$2
+
+mkdir -p $OUTDIR
+
+cp -rn $SRCDIR/* $OUTDIR/
+
+#if out'ed ir, then cp
+#parallel -j 4 convert -quality 0% -strip -resize 2048x2048 {} {} ::: $(findall $OUTDIR)
+
+parallel -j 4 smally {} ::: $(findall $OUTDIR)

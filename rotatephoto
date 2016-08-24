@@ -1,0 +1,21 @@
+#!/bin/bash
+
+ORI=$1
+FILE=$2
+
+if [ ! -f "$FILE" ]; then
+    echo "$FILE is not a file! Aborting"
+    exit
+fi
+
+# check wise
+
+if [[ $ORI == *"left"* ]] ; then
+    convert "$FILE" -rotate 90 "$FILE"
+    echo "done"
+elif [[ $ORI == *"right"* ]] ; then
+    convert "$FILE" -rotate 270 "$FILE"
+    echo "done"
+fi
+
+

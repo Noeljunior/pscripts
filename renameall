@@ -1,0 +1,34 @@
+#!/bin/sh
+
+function findall {
+    find "$1" \
+    -name '*.JPG' -o \
+    -name '*.jpg' -o \
+    -name '*.JEPG' -o \
+    -name '*.jpeg' \
+    | sort -h
+}
+
+
+LS=$1
+LZ="%0$2""d"
+PF="$3"
+
+a=1
+for i in $(findall $LS); do
+    new=$(printf "$LZ" "$a") #04 pad to length of 4
+    extension="${i##*.}"
+    dirn=$(dirname $i)
+
+    if [ "$i" == "$extension" ]; then
+        extension="";
+    else
+        extension="."$extension;
+    fi;
+        
+
+    #echo "mv \"$i\" \"$PF$new$extension\""
+    echo mv -- "$i" "$dirn/$PF$new$extension"
+
+    let a=a+1
+done

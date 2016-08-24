@@ -1,0 +1,10 @@
+#!/bin/sh
+
+if [ -z "$1" ]; then
+    echo "Starting STI-CentOS..."
+    VBoxManage startvm STI-CentOS --type headless
+else
+    VBoxManage controlvm STI-CentOS $1
+fi
+
+

@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# if admin
+if   [[ $1 == *"standalone"* ]] ; then
+    xrandr --output HDMI1 --off --output LVDS1 --mode 1366x768 --pos 0x0 --rotate normal --output VIRTUAL1 --off --output DP1 --off --output VGA1 --off
+    xfconf-query -c xfce4-panel -p /panels/panel-1/output-name -s monitor-0
+elif [[ $1 == *"home"* ]] ; then
+    xrandr --output HDMI1 --off --output LVDS1 --mode 1366x768 --pos 1680x181 --rotate normal --output VIRTUAL1 --off --output DP1 --off --output VGA1 --mode 1680x1050 --pos 0x0 --rotate normal
+    xfconf-query -c xfce4-panel -p /panels/panel-1/output-name -s monitor-0
+elif [[ $1 == *"didi"* ]] ; then
+    xrandr --output HDMI1 --mode 1920x1080 --pos 1366x0 --rotate normal --output LVDS1 --mode 1366x768 --pos 0x163 --rotate normal --output VIRTUAL1 --off --output DP1 --off --output VGA1 --off
+    xfconf-query -c xfce4-panel -p /panels/panel-1/output-name -s monitor-1
+elif [[ $1 == *"fhdx2"* ]] ; then
+    #xrandr --output HDMI1 --primary --mode 1920x1080 --pos 1920x0 --rotate normal --output LVDS1 --off --output VIRTUAL1 --off --output DP1 --off --output VGA1 --mode 1920x1080 --pos 0x0 --rotate normal
+
+    xrandr --output LVDS1 --off
+    xrandr --output HDMI1 --mode 1920x1080
+    xrandr --output VGA1  --mode 1920x1080
+    xrandr --output VGA1 --left-of HDMI1
+    #xrandr --output HDMI1 --primary
+
+    #xrandr --output LVDS1 --mode 1366x768
+    #xrandr --output HDMI1 --mode 1920x1080
+    #xrandr --output VGA1  --off
+    #xrandr --output LVDS1 --left-of HDMI1
+    #xrandr --output HDMI1 --primary
+
+
+    xfconf-query -c xfce4-panel -p /panels/panel-1/output-name -s monitor-1
+fi
+
+dispwin -d 2 /home/liam/Downloads/chromium/Samsung2043NWX.icm
+dispwin -d 1 /home/liam/Downloads/chromium/Samsung2043NWX.icm

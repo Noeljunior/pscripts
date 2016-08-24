@@ -1,0 +1,48 @@
+#!/bin/bash
+
+TMPFILE="/tmp/tabtop-enable-$USER"
+
+TOUCHSCREEN_N="ELAN Touchscreen"
+TOUCHSCREEN_O="Device Enabled"
+
+TOUCHPAD_N="AlpsPS/2 ALPS GlidePoint"
+TOUCHPAD_O="Device Enabled"
+
+KEYBOARD_N="AT Translated Set 2 keyboard"
+KEYBOARD_O="Device Enabled"
+
+function enabltt() {
+    onboard &
+    xinput --set-prop "$TOUCHPAD_N" "$TOUCHPAD_O" 0
+    #xinput --set-prop "$KEYBOARD_N" "$KEYBOARD_N" 0
+    xinput --set-prop "$TOUCHSCREEN_N" "$TOUCHSCREEN_O" 1
+
+    # TODO enable accelometer
+}
+
+function disablett() {
+    pkill onboard
+    xinput --set-prop "$TOUCHPAD_N" "$TOUCHPAD_O" 1
+    #xinput --set-prop "$KEYBOARD_N" "$KEYBOARD_N" 1
+    xinput --set-prop "$TOUCHSCREEN_N" "$TOUCHSCREEN_O" 1
+}
+
+if  [ "$1" = "true" ] ; then
+    enabltt
+    touch "$TMPFILE"
+    echo "Tablet mode"
+elif  [ "$1" = "false" ] ; then
+    disablett
+    rm "$TMPFILE"
+    echo "Laptop mode"
+elif  [ "$1" = "toggle" ] ; then
+    if [ -f "$TMPFILE" ]; then
+        tabtop false
+    else
+        tabtop true
+    fi
+else
+    echo "Unknown option."
+    exit 1
+fi;
+

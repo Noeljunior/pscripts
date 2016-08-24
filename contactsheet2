@@ -1,0 +1,33 @@
+#!/bin/bash
+
+
+function findall {
+    find "$1" \
+    -name '*.JPG' -o \
+    -name '*.jpg' -o \
+    -name '*.JEPG' -o \
+    -name '*.jpeg' \
+    | sort -h
+}
+
+
+
+A4="2480x3508"
+A4_CELL="753x531"
+#A4_CELL="531x753"
+#-density 300 -units PixelsPerInch
+
+SRCDIR=$1
+OUTFILE=$2
+
+mkdir -p $(dirname $OUTFILE)
+
+montage -verbose -label '%t' -font Helvetica -pointsize 10 \
+    -density 300 -units PixelsPerInch \
+    -background '#ffffff' -fill 'black' \
+    -define jpeg:size=200x200x \
+    -geometry 812x527+15+15  -tile 3x3 \
+    $(findall $SRCDIR) $OUTFILE
+
+#-geometry 812x527+15+15  -tile 2x5 \
+

@@ -1,0 +1,110 @@
+#!/bin/bash
+
+DIR=$1
+DST=$2
+export LAYOUT=$3
+
+if [ -z "$LAYOUT" ]; then
+    LAYOUT="hd"
+    echo "WARNING: No explicit layout. Assuming hd (1366x768)"
+fi
+
+# temp directory
+TMP="/tmp/contactsheet/"
+mkdir -p $TMP
+
+# create destination directory
+mkdir -p "$DST"
+
+# list all files
+export FILELIST=$TMP"filelist"
+function findall { # except hidden
+    find "$1" \
+    -not -path '*/\.*' \
+    \( -name '*.JPG' -o \
+    -name '*.jpg' -o \
+    -name '*.JEPG' -o \
+    -name '*.jpeg' \)
+}
+findall "$DIR" | sort -h > "$FILELIST"
+
+
+# montage them based on layout
+function montit { # except hidden
+    let _istart=($2-1)*$1+1
+    let _iend=($2)*$1
+    _fout=$3
+    _sed="$_istart,$_iend""p"
+    _filelist=$(cat "$FILELIST" | sed -n $_sed)
+
+    if [ "$LAYOUT" = "20x30" ]; then
+        montage -label '%t' -font Helvetica \
+            -density 300 -units PixelsPerInch -pointsize 12  \
+            -background '#ffffff' -fill '#000000' \
+            -define jpeg:size=600x400 \
+            -geometry 700x475+30+30  -tile 3x6 -rotate "-90<" \
+            $_filelist bmp:- | convert \
+                -geometry 2480x3508 \
+                -size 2480x3508 \
+                -extent 2480x3508 -gravity center - \
+                "$_fout"
+    elif [ "$LAYOUT" = "fhd" ]; then
+        montage -label '%t' -font Helvetica \
+            -density 300 -units PixelsPerInch -pointsize 10  \
+            -background '#000000' -fill '#ffffff' \
+            -define jpeg:size=400x400x \
+            -geometry 475x475+10+10  -tile 3x2 \
+            $_filelist "$_fout"
+    elif [ "$LAYOUT" = "hd" ]; then
+        montage -label '%t' -font Helvetica \
+            -density 300 -units PixelsPerInch -pointsize 7  \
+            -background '#000000' -fill '#ffffff' \
+            -define jpeg:size=300x300 \
+            -geometry 335x335+7+7  -tile 3x2 \
+            $_filelist "$_fout"
+    fi
+    echo "$_fout: done"
+}
+export -f montit
+
+function ceildiv {
+    python -c "from math import ceil; print(ceil($1/$2))"
+}
+
+
+if [ "$LAYOUT" = "20x30" ]; then
+    nps=18
+    fprex="CS-"
+elif [ "$LAYOUT" = "fhd" ]; then
+    nps=6
+    fprex="CS-FHD-"
+elif [ "$LAYOUT" = "hd" ]; then
+    nps=6
+    fprex="CS-HD-"
+else
+    echo "ERROR: unknown layout. Aborting!"
+fi
+
+ORDERLIST=$TMP"orderlist"
+count=$(ceildiv $(cat "$FILELIST" | wc -l) $nps)
+for ((i = 1 ; i <= count ; i++ )); do
+    fn=$(printf "%03""d" "$i")
+    let in=$i+1
+    fnn=$(printf "%03""d" "$in")
+
+    now="$DST/$fprex$fn.jpg"
+    next="$DST/$fprex$fnn.jpg"
+
+    # check if next exists
+    if [ -f "$now" ] && [ -f "$next" ]; then
+        echo "$now: exists and I think it is OK"
+        continue
+    fi
+
+    echo "montit $nps $i $DST/$fprex$fn.jpg" >> "$ORDERLIST"
+done
+
+parallel -j 4 -- < "$ORDERLIST"
+
+# remove temp files
+rm -rf "$TMP"

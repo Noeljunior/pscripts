@@ -1,0 +1,19 @@
+# /etc/fstab: static file system information
+#
+# <file system>	<dir> <type>	<options> <dump>	<pass>
+# /dev/sda1
+UUID=9ea21160-3ac5-4dcd-987d-f8a8e0e45f41	/         ext4       rw,relatime,data=ordered,discard	0 1
+
+# Swap File
+/swapfile none swap defaults 0 0
+
+# sda3 - win7 installation
+# UUID=4EA097B5A097A24F     /media/win ntfs-3g uid=liam,gid=users,dmask=022,fmask=133 0 0
+
+# sda4 - ntfs data partition 
+UUID=6638DECA436E00EB       /media/data ntfs-3g uid=liam,gid=users,dmask=022,fmask=133 0 0
+
+
+# ls -la /media
+drwxr-xr-x  1 diana users 8192 Oct 24 23:30 data
+drwxr-xr-x  2 diana users 4096 Oct 23 02:11 win

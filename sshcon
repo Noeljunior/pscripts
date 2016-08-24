@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# router web interface
+ssh -L8080:192.168.1.1:80 txux
+
+# printer web interface
+ssh -L8980:192.168.1.10:80 txux
+
+# cups web ui
+ssh -L8631:localhost:631 txux

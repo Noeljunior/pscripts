@@ -1,0 +1,31 @@
+
+UUID=01CBC15C09D977B0       /root/ntfs ntfs-3g uid=root,gid=users,dmask=022,fmask=133,noauto 0 0
+
+UUID=18a9c661-9638-4c54-a002-f0fc084617be   /root/ext      ext4    defaults,noauto        0       0
+
+
+UUID=500ad55b-ed7b-48ca-b770-0596113e8a8d   /root/buf      ext4    defaults,noauto        0       0
+UUID=5e1711ec-787d-4c98-92e9-08ba0407f314   /root/diana      ext4    defaults,noauto        0       0
+
+
+
+   8       17 1695649760 sdb1
+   8       18  257864704 sdb2
+
+
+Filesystem                   1K-blocks       Used Available Use% Mounted on
+/dev/mapper/arch_root-image    1502784     796700    689700  54% /
+dev                            2015916          0   2015916   0% /dev
+run                            2026024      20288   2005736   2% /run
+/dev/sdc1                       541696     541696         0 100% /run/archiso/bootmnt
+cowspace                       3039036      89644   2949392   3% /run/archiso/cowspace
+/dev/loop0                      234368     234368         0 100% /run/archiso/sfs/root-image
+tmpfs                          2026024          0   2026024   0% /dev/shm
+tmpfs                          2026024          0   2026024   0% /sys/fs/cgroup
+tmpfs                          2026024          0   2026024   0% /tmp
+tmpfs                          2026024        848   2025176   1% /etc/pacman.d/gnupg
+/dev/sdb1                   1695649756 1087098084 608551672  65% /root/ntfs
+/dev/sdb2                    253686404  221853284  18923504  93% /root/ext
+/dev/sda2                    449560296  415582428  11118452  98% /root/buf
+
+1038

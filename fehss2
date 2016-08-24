@@ -1,0 +1,27 @@
+#!/bin/bash
+#feh -d -S filename --draw-tinted -B black -m -N -R 1 -H 100 -W 800 -E 100 -y 100 $@
+
+
+# -Y hide pointer
+
+#feh -g 640x480  -S filename --draw-tinted -B black -N -R 3 -D 3   --info "basename %n .JPG"   -e "/usr/share/fonts/TTF/DejaVuSansCondensed-Bold.ttf/40"
+
+#feh -S filename --draw-tinted -B black -F --slideshow-delay 1.0 --info "basename %n .JPG" --font 'yudit/60' .
+
+
+
+
+feh --fullscreen \
+    --draw-tinted \
+    -S filename \
+    --reload 3 \
+    --index-info "%n" \
+    --image-bg "black" \
+    --slideshow-delay "3.0" \
+    --info "basename -s .JPEG -s .JPG -s .jpeg -s .jpg %n" \
+    --font "/usr/share/fonts/TTF/Ubuntu-B.ttf/50" \
+    $@
+    #--hide-pointer \
+    # --recursive \
+    #--font 'yudit/60' \
+

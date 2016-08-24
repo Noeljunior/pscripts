@@ -1,0 +1,30 @@
+- conky
+    more info
+    lightweight version
+
+- theme corrections
+    darks: libre office; context menu (chromium); disabled items
+    titles bars colours
+    desktop icons
+    gtk3 pixel size bugs
+    
+- fonts rendering
+
+» gtk theme on root app (gksu)
+
+- xfce4
+    config: shortcuts; + default workspace
+    power-manager
+    shortcuts: alt+f2=gksu run app; run console
+    
+- zsh
+    config
+
+- terminator
+    config
+
+- logitech m510
+    getting buttons working
+    
+- SLiM
+    session spam

@@ -1,0 +1,19 @@
+#!/bin/bash
+
+EVENT=$1
+
+# copy, sort and rename photos
+echo "Copying, sorting and renaming..."
+copy-sort "$EVENT/ORIGINAL" "$EVENT/SELECTED"
+if [ "$?" != 0 ]; then exit 1; fi;
+
+# build small versions of the photos
+echo; echo "Smallyfing..."
+smallify "$EVENT/SELECTED" "$EVENT/SELECTED-SMALL"
+
+# build contactsheets
+echo; echo "Building slideshow and contactsheet..."
+contactsheet "$EVENT/SELECTED-SMALL" "$EVENT/SLIDESHOW" "hd"
+contactsheet "$EVENT/SELECTED-SMALL" "$EVENT/CONTACTSHEET" "20x30"
+
+echo; echo "Done!"

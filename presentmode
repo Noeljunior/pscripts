@@ -1,0 +1,16 @@
+#!/bin/bash
+
+
+function presentationmode() {
+    if  [ "$1" = "true" ] ; then
+        xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/presentation-mode -s true
+        notify-send -i gnome-power-manager "Presentation mode is on"
+    elif [ "$1" = "false" ] ; then
+        xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/presentation-mode -s false
+        notify-send -i gnome-power-manager "Presentation mode is off"
+    else
+        echo "unknown rotation"
+    fi;
+}
+
+presentationmode "$1"

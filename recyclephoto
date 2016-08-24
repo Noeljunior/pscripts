@@ -1,0 +1,27 @@
+#!/bin/bash
+
+ORIG=$1
+DEST=$2
+
+if [ ! -f "$ORIG" ]; then
+    echo "$ORIG is not a file! Aborting"
+    exit
+fi
+
+# default directory
+if [ -z "$DEST" ]; then
+    DEST=$(dirname $ORIG)"/.deleted"
+fi
+
+# create directory
+mkdir -p "$DEST"
+
+# check if destination exists
+DEST=$DEST"/"$(basename $ORIG)
+if [ -f $DEST ]; then
+    echo "'$DEST' exists. Ignoring this reclying"
+    exit
+fi
+
+# move it
+mv "$ORIG" "$DEST"

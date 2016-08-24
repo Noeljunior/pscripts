@@ -1,0 +1,1 @@
+alsa_in -j "USB1" -d hw:1 -q 1 -c 1

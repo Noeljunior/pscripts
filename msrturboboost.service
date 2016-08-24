@@ -1,0 +1,15 @@
+[Unit]
+Description=MSR TurboBoost
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/modprobe msr
+ExecStart=-/usr/bin/wrmsr --all 0x1a0 0x850089
+ExecStart=/usr/bin/modprobe -r msr
+
+ExecStop=/usr/bin/modprobe msr
+ExecStop=-/usr/bin/wrmsr --all 0x1a0 0x4000850089
+ExecStop=/usr/bin/modprobe -r msr
+
+[Install]
+WantedBy=multi-user.target

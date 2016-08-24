@@ -1,0 +1,10 @@
+#!/bin/sh
+
+if [ -z "$1" ]; then
+    echo "Starting GISI-CentOS..."
+    VBoxManage startvm GISI-CentOS --type headless
+else
+    VBoxManage controlvm GISI-CentOS $1
+fi
+
+

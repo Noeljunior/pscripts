@@ -1,0 +1,47 @@
+#!/bin/bash
+
+DIR=$1
+DST=$2
+
+QUAL=$3
+if [ -z "$QUAL" ]; then
+    QUAL="700"
+fi
+QUAL=$(echo $QUAL"x"$QUAL)
+
+# temp directory
+TMP="/tmp/smallify/"
+mkdir -p $TMP
+
+# copy files
+mkdir -p "$DST"
+cp -rn "$DIR/." "$DST"
+
+# list all files
+FILELIST=$TMP"filelist"
+function findall { # except hidden
+    find "$1" \
+    -not -path '*/\.*' \
+    \( -name '*.JPG' -o \
+    -name '*.jpg' -o \
+    -name '*.JEPG' -o \
+    -name '*.jpeg' \)
+}
+findall "$DST" > "$FILELIST"
+
+# resize if needed
+function resizy {
+    #convert -quality "0%" -resize "700x700>" "$1" "$1"
+    convert "$1" -auto-orient -filter spline -quality "75%" -resize "700x700>" -unsharp 0x1 "$1"
+    #convert "$1" -auto-orient -filter spline -quality "0%" -resize "400x400>" -unsharp 0x1 "$1"
+    #convert -quality "0%" -resize "300x300>" "$1" "$1.webp"
+    echo "$1: converted"
+}
+export SIZE
+export QUAL
+export -f resizy
+cat "$FILELIST" | parallel -j 4 resizy :::
+
+
+# remove temp files
+rm -rf "$TMP"

@@ -1,0 +1,60 @@
+#!/bin/bash
+
+DIR=$1
+DEST=$2
+
+if [ -z "$DIR" ]; then
+    echo "WARNING: no source defined"
+    exit
+fi
+if [ -z "$DEST" ]; then
+    echo "WARNING: no destination defined"
+    exit
+fi
+
+# temp directory
+TMP="/tmp/copyrotate/"
+mkdir -p "$TMP"
+
+mkdir -p "$DEST"
+
+# list all files
+FILELIST=$TMP"filelist"
+function findall { # except hidden
+#    -maxdepth 1 \
+    find "$1" \
+    -not -path '*/\.*' \
+    \( -name '*.JPG' -o \
+    -name '*.jpg' -o \
+    -name '*.JEPG' -o \
+    -name '*.jpeg' \)
+}
+findall "$DIR" > "$FILELIST"
+
+# resize if needed
+function resizy {
+    string="$1"
+    prefix="$DIR"
+    suffix=""
+    foo=${string#$prefix}
+    foo=${foo%$suffix}
+    NEWFILE=$(echo "$DEST${foo}")
+    
+    if [ -f "$NEWFILE" ]; then
+        echo "$NEWFILE already rotated"
+        return;
+    fi
+    
+    mkdir -p $(dirname "$NEWFILE")
+    convert "$1" -auto-orient "$NEWFILE"
+    echo "$NEWFILE done"
+}
+export DIR
+export DEST
+export -f resizy
+cat "$FILELIST" | parallel -j 4 resizy :::
+
+
+
+
+rm -rf "$TMP"
