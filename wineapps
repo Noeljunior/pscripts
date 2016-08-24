@@ -1,0 +1,89 @@
+#!/bin/bash
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+WINEAPS=$HOME"/.wineapps"
+
+#UTILS
+function clearpath() {
+    local t
+    t=$(dirname "$1")
+    t=$t"/"$(basename "$1")
+    echo "$t"
+}
+
+function runas() {
+    WINEPREFIX="$1" wine start /Unix "$2" ${@:3}
+}
+
+
+# the base dir, or where wineapps is
+BDIR=$WINEAPS
+BDIR=$(clearpath "$BDIR")
+
+
+# the request
+WA_PREFIX="$1"
+shift
+WA_APP="$1"
+shift
+WA_ARGS="$@"
+
+if [ -z "$WA_PREFIX" ]; then
+    echo "Usage: wineapps prefix [app [args]]"
+    exit 1
+fi
+
+# check the existance of the prefix
+WA_PDIR="$BDIR/prefixes/$WA_PREFIX"
+if [ ! -d "$WA_PDIR" ]; then
+    echo "'$WA_PDIR' not found."
+    exit 1;
+fi
+# check if the prefix has config file
+WA_CFGPATH="$BDIR/prefixes/$WA_PREFIX/wineapp.cfg"
+if [ ! -f "$WA_CFGPATH" ]; then
+    echo "'$WA_CFGPATH' not found. Please create a configuration file."
+    exit 1;
+fi
+
+# source this prefix config
+declare -A WA_APPS
+. $WA_CFGPATH
+
+# check if user gave an app or not
+if [[ -z "${WA_APP// }" ]]; then
+    # pick the first occurrence
+    for i in "${!WA_APPS[@]}"; do
+        WA_APP="$i"
+        break;
+    done
+    echo "No app specified. I've picked '$WA_APP' for you."
+fi
+
+# run the app or the command
+if [ "$WA_APP" == "noapp" ]; then
+    echo "Running in this wineprefix."
+    WINEPREFIX="$WA_PDIR" $WA_ARGS
+    exit 0
+elif [ -z ${WA_APPS[$WA_APP]+x} ]; then
+    echo "App not found. Executing the command."
+    runas "$WA_PDIR" "$WA_APP" $WA_ARGS
+    exit 0
+else
+    echo "Executing '$WA_APP'."
+    runas "$WA_PDIR" "$WA_PDIR/${WA_APPS[$WA_APP]}" $WA_ARGS &
+    exit 0
+fi;
+exit 1
+
+
+
+
+

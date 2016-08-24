@@ -1,0 +1,151 @@
+#!/bin/bash
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+DIR=$HOME"/.wineapps"
+
+ICONS=$DIR"/icons"
+SHORTCUTS=$DIR"/shortcuts"
+BINS=$DIR"/bins"
+LOCATIONS=$DIR"/locations"
+PREFIXES=$DIR"/prefixes"
+
+DAPPS=$HOME"/.local/share/applications"
+DBINS=$HOME"/.scripts"
+
+UNAME=$USER
+
+function buildmenus() {
+    local CPREFIX="$1"
+    local ODIR="$2"
+
+    function menuentry() {
+    # "name" "command" "comment" "generic name" "icon" "category"
+    cat >&1 <<DELIM
+[Desktop Entry]
+Encoding=UTF-8
+Name=$1
+Exec=$2
+Comment=$3
+GenericName=$4
+Icon=$ICONS/$5
+Categories=$6;
+Type=Application
+Terminal=false
+StartupNotify=false
+Path=
+DELIM
+    }
+
+    declare -A WA_APPS
+    source "$CPREFIX"
+
+    MENUS=$(set | awk -F "=" '{print $1}' | grep ".*WA_MENU.*")
+
+    for i in $MENUS; do
+        name=$(eval echo '"${'${i}'[0]/#/}"')
+        fname=$(echo $name | tr -d ' ')".desktop"
+        pname=$(dirname $1)
+        fname=$(echo "$ODIR/"$(basename $pname)"-$i-$fname")
+        if [ -f $fname ]; then
+            rm $fname
+        fi
+        eval menuentry '"${'${i}'[@]/#/}"' > $fname
+    done
+}
+
+
+function buildbins() {
+    local CPREFIX="$1"
+    local ODIR="$2"
+
+    function binentry() {
+    # "exec"
+    cat >&1 <<DELIM
+#!/bin/bash
+exec $1 \$@
+DELIM
+    }
+
+    declare -A WA_APPS
+    source "$CPREFIX"
+
+    BINS=$(set | awk -F "=" '{print $1}' | grep ".*WA_BIN.*")
+
+    for i in $BINS; do
+        fname=$(eval echo '"${'${i}'[0]/#/}"')
+        cmd=$(eval echo '"${'${i}'[1]/#/}"')
+        fname=$(echo "$ODIR/"$(basename $fname))
+        if [ -f $fname ]; then
+            rm $fname
+        fi
+        binentry "$cmd" > $fname
+        chmod +x "$fname"
+    done
+}
+
+
+function installstuff() {
+    # copy apps
+    for f in $SHORTCUTS/*; do
+        bname=$DAPPS"/"$(basename $f)
+        if [ -f $bname ]; then
+            rm $bname
+        fi
+        ln -s $f $bname
+    done
+    # copy bins
+    for f in $BINS/*; do
+        bname=$DBINS"/"$(basename $f)
+        if [ -f $bname ]; then
+            rm $bname
+        fi
+        ln -s $f $bname
+    done
+}
+
+function fixprefix() {
+    prefix="$1"
+    #get the actual username
+    p=$(find "$prefix/drive_c/users/" -maxdepth 1 -mindepth 1 -type d ! -path "*Public" | head -n 1)
+    uname=$(basename $p)
+
+    if [ ! "$uname" == "$UNAME" ]; then
+        # fix home
+        mv "$prefix/drive_c/users/$uname" "$prefix/drive_c/users/$UNAME"
+
+        # fix reg files
+        sed -i "s/$uname/$UNAME/g" "$prefix/user.reg"
+        sed -i "s/$uname/$UNAME/g" "$prefix/userdef.reg"
+        sed -i "s/$uname/$UNAME/g" "$prefix/system.reg"
+    fi
+
+    #fix dirs
+    cd "$prefix/dosdevices/"
+    rm -rf *
+    ln -s "../drive_c" "c:"
+    ln -s "$HOME" "d:"
+    ln -s "/" "z:"
+}
+
+
+
+for prefix in $PREFIXES/*; do
+    cfg=$prefix"/wineapp.cfg"
+    if [ ! -f "$cfg" ]; then
+        echo "'$cfg' not found. Please create a configuration file."
+        continue
+    fi
+    $(buildmenus "$cfg" $SHORTCUTS)
+    $(buildbins "$cfg" $BINS)
+    installstuff
+    fixprefix "$prefix"
+done
+
+
