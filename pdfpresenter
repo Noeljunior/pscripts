@@ -1,0 +1,32 @@
+#!/bin/bash
+LASTDIRF="$HOME/.config/pdfpresenter/lasdir"
+
+PDF="$1"
+
+mkdir -p "$(dirname "$LASTDIRF")"
+touch "$LASTDIRF"
+
+if [ -z "$PDF" ]; then
+    LASTDIR="$(cat "$LASTDIRF")"
+    if [ -z "$LASTDIR" ]; then
+        LASTDIR="$HOME"
+    fi
+    cd "$LASTDIR"
+    
+    PDF=$(yad --file --title="Escolha um ficheiro PDF..." --window-icon=pdfshuffler --center --file-filter="*.pdf")
+fi;
+
+if [ ! -f "$PDF" ]; then
+    exit 1
+fi
+
+# update last used directory
+echo "$(dirname "$PDF")" > "$LASTDIRF"
+
+# enable xfce4 presentation mode
+xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/presentation-mode -s true
+
+pdfpc -C "$PDF"
+
+# disable xfce4 presentation mode
+xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/presentation-mode -s false
