@@ -19,7 +19,8 @@ function clearpath() {
 }
 
 function runas() {
-    WINEPREFIX="$1" wine start /Unix "$2" ${@:3}
+    cd "$(dirname "$2")"
+    WINEPREFIX="$1" wine start /unix "$(basename "$2")" ${@:3}
 }
 
 

@@ -69,7 +69,7 @@ function buildbins() {
     # "exec"
     cat >&1 <<DELIM
 #!/bin/bash
-exec $1 \$@
+$1 \$@
 DELIM
     }
 
@@ -135,13 +135,20 @@ function fixprefix() {
 }
 
 
+# clear stuff
+eval rm -f "$SHORTCUTS/*" "$BINS/*" "$DAPPS/*WA_MENU*"
+find "$DBINS/" -lname "$DIR*" -delete
 
+# build and install
 for prefix in $PREFIXES/*; do
     cfg=$prefix"/wineapp.cfg"
     if [ ! -f "$cfg" ]; then
         echo "'$cfg' not found. Please create a configuration file."
         continue
     fi
+
+
+
     $(buildmenus "$cfg" $SHORTCUTS)
     $(buildbins "$cfg" $BINS)
     installstuff
