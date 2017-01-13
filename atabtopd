@@ -6,11 +6,12 @@ accel_dev = '/sys/bus/iio/devices/iio:device0'
 accel_max = 255
 accel_med = 127
 accel_sd  = 64
+# magic numbers reported by accelerometer when the laptop is not folded
 accel_unfolded = (3, 163, 220)
 # update  rate in hertz
-refresh_rate = 0.5
+refresh_rate = 4
 # how many seconds to wait after a detected change
-prevent_fast_change = 1
+prevent_fast_change = 0.5
 
 touchscreen_in      = "ELAN Touchscreen"
 touchscreen_prop1   = "Device Enabled"
@@ -140,6 +141,8 @@ if __name__ == '__main__':
                     print("Strange accelerometer position. Ignoring.")
                     state_read = -1
                 continue
+
+        #print(accel)
 
         if state_now != state_read:
             print("Changing to %s" % states[state_read])
