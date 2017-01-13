@@ -1,0 +1,67 @@
+#!/bin/bash
+
+DEPS=wc
+CONFIG="$HOME/.config/wpscleaner/"
+
+function confvarfile_init() {
+    local path="$1"
+    local default="${@:2}"
+
+    mkdir -p "$(dirname "$path")"
+    touch "$path"
+
+    local value="$(cat "$path")"
+    if [ -z "$value" ]; then
+        value="$default"
+    fi
+
+    echo "$value"
+}
+
+CF_BACKUPS=$CONFIG"backupspath"
+CF_DAYS=$CONFIG"days"
+
+BACKUPS=$(confvarfile_init "$CF_BACKUPS" "$HOME/.kingsoft/office6/data/backup")
+DAYS=$(confvarfile_init "$CF_DAYS" "30")
+
+# ask user
+res=$(yad --title="WPS Cleaner" --text="Clique OK para procurar ficheiros a apagar." \
+--form \
+--width=400 \
+--field="Caminho para os backups":DIR \
+--field="Mais antigos que (dias)...":NUM \
+"$BACKUPS" "$DAYS")
+
+if [ -z "$res" ]; then
+    exit 1
+fi
+
+BACKUPS=$(echo "$res" | cut -d'|' -f1)
+DAYS=$(echo "$res" | cut -d'|' -f2)
+
+# update vars
+echo "$BACKUPS" > "$CF_BACKUPS"
+echo "$DAYS" > "$CF_DAYS"
+
+
+FIND_SIZE=$(find "$BACKUPS" -mtime +$DAYS -print0 | du --files0-from=- -hcd 0 | tail -n1 | cut -f1)
+FIND_COUNT=$(find "$BACKUPS" -mtime +$DAYS | wc -l)
+
+# ask user
+res=$(yad --title="WPS Cleaner" \
+--text="$FIND_COUNT ficheiros encontrados num total de $FIND_SIZE" \
+--form \
+--width=400 \
+--field="":LBL \
+--field="Clique OK para apagar.":LBL \
+"")
+
+if [ ! $? -eq 0 ]; then
+    echo "Aborted."
+    exit 1
+fi
+
+rm $(find "$BACKUPS" -mtime +$DAYS)
+
+notify-send "$FIND_COUNT ficheiros apagados" "$FIND_SIZE libertados"
+
