@@ -1,0 +1,11 @@
+#!/bin/bash
+
+ANDFILE="$1"
+
+if [ ! -z "$ANDFILE" ]; then
+    nets=$(cat "$ANDFILE" | grep -A1 ssid | grep -B1 psk | sed '/^--/ d' | sed '$!N;s/\n/ /')
+    for net in $nets; do
+        echo "ççç $net ççç"
+    done
+fi;
+

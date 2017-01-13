@@ -1,0 +1,18 @@
+nmcli con add con-name MyCafe ifname wlp2s0 type wifi ssid MyCafe
+nmcli con modify MyCafe wifi-sec.key-mgmt wpa-psk
+nmcli con modify MyCafe wifi-sec.psk caffeine
+
+
+
+
+function addwifi() {
+    ifname="$1"
+    ssid="$2"
+    psk="$2"
+    nmcli con add con-name "$ssid" ifname "$ifname" type wifi ssid "$ssid"
+    nmcli con modify "$ssid" wifi-sec.key-mgmt wpa-psk
+    nmcli con modify "$ssid" wifi-sec.psk "$psk"
+}
+
+
+
