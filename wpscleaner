@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEPS=wc
+DEPS="wc du find yad"
 CONFIG="$HOME/.config/wpscleaner/"
 
 function confvarfile_init() {

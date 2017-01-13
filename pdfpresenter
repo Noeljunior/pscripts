@@ -1,5 +1,5 @@
 #!/bin/bash
-DEPS=yad pdfpc
+DEPS="yad pdfpc"
 
 LASTDIRF="$HOME/.config/pdfpresenter/lasdir"
 
