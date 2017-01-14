@@ -1,0 +1,214 @@
+#!/bin/python3
+
+# DEPS: python python-gobject yad imagemagick
+
+import sys
+import os
+import subprocess
+import time
+import gi
+gi.require_version('Notify', '0.7')
+from gi.repository import Notify
+
+# remove the script name
+sys.argv.pop(0)
+
+# shell run
+def srun(command, parallel = False):
+    if parallel:
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
+        return process
+    else:
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
+        return process.communicate()[0].strip().decode("utf-8"), process.returncode
+
+def sprun(command):
+    return srun(command, True)
+
+def srunning(process):
+    return proc.poll() is None
+
+def swait(process):
+    process.wait()
+
+def sret(process):
+    return process.communicate()[0].strip().decode("utf-8"), process.returncode
+
+def skill(process):
+    process.kill()
+
+# parse args
+yadarg_imgs = ""
+for img in sys.argv:
+    if img.startswith("-"):
+        continue
+    yadarg_imgs = yadarg_imgs + img + "!"
+
+# init notifications
+Notify.init("pyimg2pdf")
+notification = Notify.Notification.new("")
+
+# prepare imgs list to yad
+if yadarg_imgs[-1:] == "!":
+    yadarg_imgs = yadarg_imgs[:-1]
+
+res, ret = srun('yad --title="Imagens para PDF" \
+--form \
+--width=400 \
+--item-separator=\'!\' \
+--field="Imagens...":MFL \
+--field="Resoluação":CB \
+--field="Posição":CB \
+--field="Qualidade":NUM \
+--field="Escala":NUM \
+--field="Guardar em":SFL \
+"' + yadarg_imgs +'" "300!150!100!72" \
+"Centro!Norte!Noroeste!Oeste!Sudoeste!Sul!Sudeste!Este!Nordeste" \
+"75!1..100" "1!0.01..1!0.01!2" "converted.pdf"')
+
+
+if ret != 0:
+    sys.exit(1)
+
+# parse dialog stuff
+posdict = {
+    "Centro" : "Center",
+    "Norte" : "North",
+    "Noroeste" : "NorthWest",
+    "Oeste" : "West",
+    "Sudoeste" : "SouthWest",
+    "Sul" : "South",
+    "Sudeste" : "SouthEast",
+    "Este" : "East",
+    "Nordeste" : "NorthEast",
+}
+
+yadres      = res.split("|");
+imgs        = imgs = " ".join(['"'+i+'"' for i in yadres[0].split("!")])
+resolution  = float(yadres[1])
+position    = posdict[yadres[2]]
+quality     = int(yadres[3])
+scale       = float(yadres[4])
+output      = yadres[5]
+
+imgscount = len(yadres[0].split("!"))
+
+if not output.endswith(".pdf"):
+    output = output + ".pdf"
+
+#print(imgs)
+#print(resolution)
+#print(position)
+#print(output)
+
+# check for output file existance
+def file_exists(path):
+    if not path:
+        return False
+    else:
+        return os.path.exists(path)
+
+if file_exists(output):
+    res, ret = srun('yad --title="Imagens para PDF" \
+    --form \
+    --width=400 \
+    --field="O ficheiro \'' + output + '\' já existe. Reescrever?":LBL')
+    if ret != 0:
+        sys.exit(1)
+
+
+
+#res, ret = srun('echo "asd sdfs asd" | wc -l')
+#print(res, ret)
+
+imgs2pdf_cmd = """
+convert {infiles} -compress jpeg -quality {qual} \
+-resize {imgw}x{imgh} -density {dpi}x{dpi} -gravity {gravity} \
+-extent {paperw}x{paperh} -units PixelsPerInch {outputfile}
+"""[1:-1]
+
+imgw = (resolution * 827/100) * scale
+imgh = (resolution * 1169/100) * scale
+paperw = (resolution * 827/100)
+paperh = (resolution * 1169/100)
+
+runcmd = imgs2pdf_cmd.format(
+    infiles = imgs,
+    qual = quality,
+    dpi = resolution,
+    imgw = imgw,
+    imgh = imgh,
+    paperw = paperw,
+    paperh = paperh,
+    gravity = position,
+    outputfile = output)
+
+
+
+
+print("Running:", runcmd)
+#print(imgs2pdf_cmd.format(
+proc = sprun(runcmd)
+
+def actionCallback(notification, action, user_data = None):
+    skill(user_data)
+    print("MERDA")
+
+notification.update("A converter %d image%s" % (imgscount, "m" if imgscount == 0 else "ns"), "esperar...", "image-x-generic-symbolic")
+#notification.add_action(
+#    "action_click",
+#    "Cancelar",
+#    actionCallback,
+#    proc # Arguments
+#)
+
+notification.show()
+
+#while srunning(proc):
+#    time.sleep(1.0)
+#    print("waiting...")
+    
+
+
+
+#proc = sprun("sleep 3; ls -la")
+#
+#while srunning(proc):
+#    time.sleep(1.0)
+#    print("waiting...")
+#
+#res, ret = sret(proc)
+#
+#print(res)
+#print("ret: ", ret)
+#
+#sys.exit(0)
+
+
+res, ret = sret(proc)
+
+if ret == 0:
+    # success
+    notification.update("PDF criado com %d image%s" % (imgscount, "m" if imgscount == 0 else "ns"),
+        "Guardo em '%s'" % (output), "image-x-generic-symbolic")
+    notification.show()
+else:
+    # fail
+    notification.update("Erro ao criar ficheiro", icon="image-x-generic-symbolic")
+    notification.show()
+    pass
+
+
+#def imgs2pdf_cmd(files, dpi = 150, qual = 75, scale = 1.0):
+#    retun '\
+#      convert "INFILES" -compress jpeg -quality 70 \
+#      -resize $((i*827/100))x$((i*1169/100)) -density ${i}x${i} \
+#      -extent $((i*827/100))x$((i*1169/100)) -units PixelsPerInch -gravity north multipage.pdf'
+
+
+
+
+
+
+
+
