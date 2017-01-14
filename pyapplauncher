@@ -1,0 +1,81 @@
+#!/bin/python3
+
+# this is a away of creating launchers [or add mime types]
+
+# DEPS: python python-gobject yad imagemagick
+
+import sys
+import os
+import subprocess
+
+# remove the script name
+sys.argv.pop(0)
+args = sys.argv;
+
+str_apppath = """
+~/.local/share/applications/
+"""[1:-1]
+
+str_launcher = """
+[Desktop Entry]
+Encoding=UTF-8
+Name={name}
+Exec={cmd}
+Comment={comment}
+GenericName={genericname}
+Icon={icon}
+Categories={category}
+Type=Application
+Terminal=false
+StartupNotify=false
+Path=
+"""[1:-1]
+
+if ("--help" in sys.argv) or len(sys.argv) < 7:
+    print("Usage: <fname> <name> <command> <comment> <generic_name> <icon> <category>")
+    sys.exit(0)
+
+
+
+# prepare args
+fname       = sys.argv[0]# if len(sys.argv) > 0 else "pyapplauncherdef.desktop"
+name        = sys.argv[1]# if len(sys.argv) > 1 else "pyapplauncherdef.desktop"
+cmd         = sys.argv[2]# if len(sys.argv) > 2 else "pyapplauncherdef.desktop"
+comment     = sys.argv[3]# if len(sys.argv) > 3 else "pyapplauncherdef.desktop"
+genericname = sys.argv[4]# if len(sys.argv) > 4 else "pyapplauncherdef.desktop"
+icon        = sys.argv[5]# if len(sys.argv) > 5 else "pyapplauncherdef.desktop"
+category    = sys.argv[6]# if len(sys.argv) > 6 else "pyapplauncherdef.desktop"
+
+if not fname.endswith(".desktop"):
+    fname = fname + ".desktop"
+
+def file_exists(path):
+    if not path:
+        return False
+    else:
+        return os.path.exists(path)
+
+apppath = os.path.expanduser(str_apppath) + fname
+
+if file_exists(apppath):
+    if "--overwrite" not in args:
+        print("File '%s' exists. --overwrite to proceed" % fname)
+        sys.exit(0)
+
+with open(apppath, "w") as tf:
+    tf.write(str_launcher.format(
+        name = name,
+        cmd = cmd,
+        comment = comment,
+        genericname = genericname,
+        icon = icon,
+        category = category,
+    ))
+
+
+
+
+
+
+
+
