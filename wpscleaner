@@ -18,6 +18,21 @@ function confvarfile_init() {
     echo "$value"
 }
 
+if [[ "$1" == "--install-launcher" ]]; then
+    pyapplauncher \
+        "wpscleaner.desktop"\
+        "WPS Office Cleaner"\
+        "wpscleaner"\
+        "Cleans up the wps-office backup files"\
+        "Images to PDF"\
+        "image-x-generic-symbolic"\
+        "Accessories"\
+        "%d"\
+    exit 0
+fi;
+
+
+
 CF_BACKUPS=$CONFIG"backupspath"
 CF_DAYS=$CONFIG"days"
 
