@@ -28,11 +28,11 @@ Categories={category}
 Type=Application
 Terminal=false
 StartupNotify=false
-Path=
+Path={path}
 """[1:-1]
 
-if ("--help" in sys.argv) or len(sys.argv) < 7:
-    print("Usage: <fname> <name> <command> <comment> <generic_name> <icon> <category>")
+if ("--help" in sys.argv) or len(sys.argv) < 8:
+    print("Usage: <fname> <name> <command> <comment> <generic_name> <icon> <category> <path>")
     sys.exit(0)
 
 
@@ -45,6 +45,7 @@ comment     = sys.argv[3]# if len(sys.argv) > 3 else "pyapplauncherdef.desktop"
 genericname = sys.argv[4]# if len(sys.argv) > 4 else "pyapplauncherdef.desktop"
 icon        = sys.argv[5]# if len(sys.argv) > 5 else "pyapplauncherdef.desktop"
 category    = sys.argv[6]# if len(sys.argv) > 6 else "pyapplauncherdef.desktop"
+path        = sys.argv[7]# if len(sys.argv) > 6 else "pyapplauncherdef.desktop"
 
 if not fname.endswith(".desktop"):
     fname = fname + ".desktop"
@@ -70,11 +71,23 @@ with open(apppath, "w") as tf:
         genericname = genericname,
         icon = icon,
         category = category,
+        path = path
     ))
 
 
 
+# REFERENCES
 
+# %f	a single filename.
+# %F	multiple filenames.
+# %u	a single URL.
+# %U	multiple URLs.
+# %d	a single directory. Used in conjunction with %f to locate a file.
+# %D	multiple directories. Used in conjunction with %F to locate files.
+# %n	a single filename without a path.
+# %N	multiple filenames without paths.
+# %k	a URI or local filename of the location of the desktop file.
+# %v	the name of the Device entry.
 
 
 
