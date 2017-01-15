@@ -24,8 +24,8 @@ if [[ "$1" == "--install-launcher" ]]; then
         "WPS Office Cleaner"\
         "wpscleaner"\
         "Cleans up the wps-office backup files"\
-        "Images to PDF"\
-        "image-x-generic-symbolic"\
+        "WPS Office Cleaner"\
+        "x-office-document-symbolic"\
         "Accessories"\
         "%d"\
     exit 0
