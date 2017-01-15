@@ -40,17 +40,18 @@ def skill(process):
     process.kill()
 
 if "--install-launcher" in sys.argv:
-    srun("""pyapplauncher \
+    srun("""pyapplauncher\
         "pyimg2pdf.desktop"\
         "Images to PDF"\
         "pyimg2pdf %F"\
         "Convert images to a PDF file"\
         "Images to PDF"\
         "image-x-generic-symbolic"\
-        "Accessories"\
+        "Utility"\
         "%d"\
+         --overwrite\
     """)
-    print("Installed launcher")
+    print("Launcher installed")
     sys.exit(0)
 
 if "--action" in sys.argv:

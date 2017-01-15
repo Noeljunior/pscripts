@@ -18,7 +18,7 @@ function confvarfile_init() {
     echo "$value"
 }
 
-if [[ "$1" == "--install-launcher" ]]; then
+if [ "$1" == "--install-launcher" ]; then
     pyapplauncher \
         "wpscleaner.desktop"\
         "WPS Office Cleaner"\
@@ -26,8 +26,10 @@ if [[ "$1" == "--install-launcher" ]]; then
         "Cleans up the wps-office backup files"\
         "WPS Office Cleaner"\
         "x-office-document-symbolic"\
-        "Accessories"\
+        "Utility"\
         "%d"\
+        --overwrite
+    echo "Launcher installed"
     exit 0
 fi;
 
