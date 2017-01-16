@@ -117,10 +117,10 @@ posdict = {
 
 yadres      = res.split("|");
 imgs        = imgs = " ".join(['"'+i+'"' for i in yadres[0].split("!")])
-resolution  = float(yadres[1])
+resolution  = float(yadres[1].replace(",", "."))
 position    = posdict[yadres[2]]
 quality     = int(yadres[3])
-scale       = float(yadres[4])
+scale       = float(yadres[4].replace(",", "."))
 output      = yadres[5]
 
 imgscount = len(yadres[0].split("!"))
