@@ -1,0 +1,116 @@
+#!/bin/python3
+
+# a simple way of converting images to PDF
+
+# DEPS: python python-gobject yad imagemagick
+
+import sys
+import os
+import subprocess
+import time
+import gi
+gi.require_version('Notify', '0.7')
+from gi.repository import Notify
+
+# remove the script name
+sys.argv.pop(0)
+
+# shell run
+def srun(command, parallel = False):
+    if parallel:
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
+        return process
+    else:
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
+        return process.communicate()[0].strip().decode("utf-8"), process.returncode
+
+def sprun(command):
+    return srun(command, True)
+
+def srunning(process):
+    return proc.poll() is None
+
+def swait(process):
+    process.wait()
+
+def sret(process):
+    return process.communicate()[0].strip().decode("utf-8"), process.returncode
+
+def skill(process):
+    process.kill()
+
+def file_exists(path):
+    if not path:
+        return False
+    else:
+        return os.path.exists(path)
+
+# init notifications
+Notify.init("pysymlink")
+notification = Notify.Notification.new("")
+
+if "--action" in sys.argv:
+    print("Add it to '%s'" % (os.path.expanduser("~/.config/Thunar/uca.xml")))
+    print("""
+<action>
+    <icon>image-x-generic-symbolic</icon>
+    <name>To PDF</name>
+    <unique-id>1484510692611867-1</unique-id>
+    <command>pyimg2pdf %F</command>
+    <description>Convert images to PDF</description>
+    <patterns>*</patterns>
+    <image-files/>
+</action>
+"""[1:-1])
+    sys.exit(0)
+
+
+res, ret = srun("xclip -o -selection c")
+
+filelist = []
+
+target = os.path.dirname(os.path.abspath(__file__))
+if len(sys.argv) > 0:
+    target = sys.argv[0]
+
+print("Using '%s' as target path" % target)
+
+for l in res.splitlines():
+    if l.startswith("file://"):
+        l = l[7:]
+    filelist = filelist + [l]
+
+nottxt = ""
+cnt = 0
+
+for f in filelist:
+    if not file_exists(f):
+        continue
+    
+    name = os.path.basename(f)
+    
+    targetf = target + "/" + name
+    
+    if file_exists(targetf):
+        continue
+    
+    res, ret = srun('ln -s "%s" "%s"' % (f, target))
+    if ret != 0:
+        print("ERROR: when creating '%s' at '%s'", (f, target))
+        continue
+
+    print("Creating symlink for '%s' in '%s'" % (f, targetf))
+    nottxt = nottxt + "Symlink for '%s' in '%s'\n" % (f, targetf)
+    cnt = cnt + 1
+
+
+if cnt > 0:
+    notification.update("%i symbolic link%s created." % (cnt, "s" if cnt == 1 else ""), nottxt, "insert-link-symbolic")
+    notification.show()
+
+else:
+    notification.update("No files in clipboard", None, "insert-link-symbolic")
+    notification.show()
+
+
+
