@@ -53,13 +53,13 @@ if "--action" in sys.argv:
     print("Add it to '%s'" % (os.path.expanduser("~/.config/Thunar/uca.xml")))
     print("""
 <action>
-    <icon>image-x-generic-symbolic</icon>
-    <name>To PDF</name>
-    <unique-id>1484510692611867-1</unique-id>
-    <command>pyimg2pdf %F</command>
-    <description>Convert images to PDF</description>
-    <patterns>*</patterns>
-    <image-files/>
+	<icon>insert-link-symbolic</icon>
+	<name>Symlink</name>
+	<unique-id>1484527120070378-2</unique-id>
+	<command>pysymlink</command>
+	<description>Create a symbolic link based on clipboard</description>
+	<patterns>*</patterns>
+	<directories/>
 </action>
 """[1:-1])
     sys.exit(0)
@@ -69,7 +69,7 @@ res, ret = srun("xclip -o -selection c")
 
 filelist = []
 
-target = os.path.dirname(os.path.abspath(__file__))
+target = os.getcwd()
 if len(sys.argv) > 0:
     target = sys.argv[0]
 
@@ -92,11 +92,12 @@ for f in filelist:
     targetf = target + "/" + name
     
     if file_exists(targetf):
-        continue
+        targetf = target + "/Link to " + name
+        
     
-    res, ret = srun('ln -s "%s" "%s"' % (f, target))
+    res, ret = srun('ln -s "%s" "%s"' % (f, targetf))
     if ret != 0:
-        print("ERROR: when creating '%s' at '%s'", (f, target))
+        print("ERROR: when creating '%s' at '%s'", (f, targetf))
         continue
 
     print("Creating symlink for '%s' in '%s'" % (f, targetf))
