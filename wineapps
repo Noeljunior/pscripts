@@ -5,7 +5,7 @@
 # with this you can run, create desktop launchers, create mime types.
 #
 
-# DEPS: python3 wine 
+# DEPS: python3 wine pgiz
 
 # TODO
 #   - option to initialize a prefix with an empty config file
@@ -88,9 +88,9 @@ configgroup.add_argument("--clean-x-wine", action="store_true", default = False,
                     help="cleans all wine shortus, file associations and MIME types")
 configgroup.add_argument("--all-prefixes", action="store_true", default = False,
                     help="iterate over all prefixes")
+configgroup.add_argument("--targz", metavar="FILE",
+                    help="creates an archive with all known prefixes into a tar.gz")
 
-#parser.add_argument("--noapp", action="store_true",
-#                    help="run command within prefix without launching the app")
 parser.add_argument("--no-escape-quotes", action="store_true", default = False,
                     help="do not escape quotes from arguments")
 parser.add_argument("--no-path-solving", action="store_true", default = False,
@@ -305,6 +305,33 @@ def cleanall():
     #srun('update-mime-database')
     print("Cleaned up")
 
+def targz(output):
+    # list of all prefixes
+    prefixes = dict(config["prefixes"]);
+    if len(prefixes) <= 0:
+        print("No prefixes found")
+        return
+
+    #prefixesstr = []
+    for prefix, path in prefixes.items():
+        path = os.path.expanduser(path)
+        if path.endswith("/"):
+            path = path[:-1]
+        parent = os.path.dirname(path)
+        target = os.path.relpath(path, parent)
+        targz = "{}-{}.tar.gz".format(os.path.basename(target), output)
+
+        if os.path.exists(targz):
+            print("'{}' exists. Remove it first if you want to overwrite.".format(
+                os.path.relpath(targz)))
+            continue
+
+        #prefixesstr = prefixesstr + [os.path.expanduser(path)]
+        srun('cd "{}"; tar c {} | pigz -c > "{}"'.format(
+            parent,
+            target,
+            targz))
+
 #print(args)
 #print(config.sections())
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -410,6 +437,10 @@ if __name__ == "__main__":
 
     if args.clean_x_wine:
         cleanall()
+        sys.exit(0)
+
+    if args.targz:
+        targz(args.targz)
         sys.exit(0)
 
     print("Nothing to be done. Have  a nice day")
