@@ -1,88 +1,427 @@
+#!/bin/python3
+
+#
+# this scripts is an helper to somewhow manage multiple wine prefixes.
+# with this you can run, create desktop launchers, create mime types.
+#
+
+# DEPS: python3 wine 
+
+# TODO
+#   - option to initialize a prefix with an empty config file
+#   - check for necessary items to creating a launcher or bin before doing it
+
+import argparse
+import configparser
+import os
+import sys
+import subprocess
+import getpass
+
+_CONFIG_FILE = os.path.expanduser("~/.config/wineapps.cfg")
+_PREFIX_CONFIG = "wineapp.cfg"
+_LAUNCHER_PATH = "~/.local/share/applications/"
+_BIN_PATH = "~/.scripts"
+_BIN_PERM = 0o755
+
+
+def loadconfig(path, errorstr = "Error.", exit = True, addroot = True):
+    try:
+        with open(path, 'r') as f:
+            if addroot:
+                config_string = '[ROOT]\n' + f.read()
+            else:
+                config_string = f.read()
+    except:
+        print(errorstr)
+        if exit:
+            sys.exit(1)
+        else:
+            return None
+    config = configparser.RawConfigParser()
+    config.read_string(config_string)
+    return config
+
+def getconfig(config, section, option, defval = ""):
+    return config.get(section, option) if config.has_option(section, option) else defval
+
+# shell run
+def srun(command, parallel = False):
+    if parallel:
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
+        return process
+    else:
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
+        return process.communicate()[0].strip().decode("utf-8"), process.returncode
+
+def sprun(command):
+    return srun(command, True)
+
+def srunning(process):
+    return proc.poll() is None
+
+def swait(process):
+    process.wait()
+
+def sret(process):
+    return process.communicate()[0].strip().decode("utf-8"), process.returncode
+
+def skill(process):
+    process.kill()
+
+# parse args: TODO print prefix info; 
+parser = argparse.ArgumentParser()
+rungroup = parser.add_argument_group("Run an wineapp")
+rungroup.add_argument("--run", type=str, metavar="PREFIX",
+                    help="run within PREFIX")
+rungroup.add_argument("--app", type=str, metavar="PREFIX",
+                    help="run APP")
+rungroup.add_argument('arg', type=str, nargs='*',
+                    help="application arguments")
+
+configgroup = parser.add_argument_group("Configure wineapps")
+#configgroup.add_argument("--add-prefix", type=str, metavar="PREFIX",
+#                    help="install all apps of the PREFIX")
+configgroup.add_argument("--install", metavar="PREFIX", nargs='?', const = "",
+                    help="install all apps of the PREFIX")
+configgroup.add_argument("--clean-x-wine", action="store_true", default = False,
+                    help="cleans all wine shortus, file associations and MIME types")
+configgroup.add_argument("--all-prefixes", action="store_true", default = False,
+                    help="iterate over all prefixes")
+
+#parser.add_argument("--noapp", action="store_true",
+#                    help="run command within prefix without launching the app")
+parser.add_argument("--no-escape-quotes", action="store_true", default = False,
+                    help="do not escape quotes from arguments")
+parser.add_argument("--no-path-solving", action="store_true", default = False,
+                    help="if set, I will not try to solve the given paths on arguments")
+
+# set default config file if there is none
+if not os.path.exists(_CONFIG_FILE):
+    try:
+        with open(_CONFIG_FILE, 'w') as configfile:
+            configfile.write("""
+# Global settings
+
+# launcher_path = ~/.local/share/applications/
+# bin_path = ~/.scripts
+# bin_perm = 0755
+
+[prefixes]
+# prefix_name = /path/to/the/prefix
+"""[1:-1].format())
+    except:
+        print("Can't write config file at {}. Solve that before continue.".format(
+            _CONFIG_FILE))
+        sys.exit(1)
+
+# parse configs: TODO bin paths; dekstop launcher paths;
+config = loadconfig(_CONFIG_FILE,
+    "Can't read config file at '{}'. Solve that before continue.".format(_CONFIG_FILE))
+
+_LAUNCHER_PATH = getconfig(config, "ROOT", "launcher_path", _LAUNCHER_PATH)
+_BIN_PATH      = getconfig(config, "ROOT", "bin_path",      _BIN_PATH)
+_BIN_PERM      = getconfig(config, "ROOT", "bin_perm",      _BIN_PERM)
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#
+#                                       CONFIGURE
+#
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+def desktopentry(prefix, app, prefixpath, name = "", cmd = "", comment = "",
+                 genericname = "", icon = "", category = "", path = ""):
+    # prepare args
+    icon = icon.replace("{prefix}", os.path.expanduser(prefixpath))
+
+    if not os.path.exists(icon):
+        print("Warning: icon '{}' does not exists.".format(icon))
+
+    installpath = os.path.join(os.path.expanduser(_LAUNCHER_PATH),
+        "WA_{prefix}_{app}.desktop".format(prefix = prefix, app = app))
+
+    # build string
+    str_launcher = """
+[Desktop Entry]
+Encoding=UTF-8
+Name={name}
+Exec={cmd}
+Comment={comment}
+GenericName={genericname}
+Icon={icon}
+Categories={category}
+Type=Application
+Terminal=false
+StartupNotify=false
+Path={path}
+"""[1:-1].format(
+        name        = name,
+        cmd         = cmd,
+        comment     = comment,
+        genericname = genericname,
+        icon        = icon,
+        category    = category,
+        path        = path,
+    )
+
+    with open(installpath, "w") as f:
+        f.write(str_launcher)
+
+def binentry(name = "", cmd = ""):
+    # prepare args
+    installpath = os.path.join(os.path.expanduser(_BIN_PATH), name)
+
+    # build string
+    str_bin = """
 #!/bin/bash
+{cmd}
+"""[1:-1].format(
+        cmd = cmd
+    )
 
-SOURCE="${BASH_SOURCE[0]}"
-while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
-  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
-  SOURCE="$(readlink "$SOURCE")"
-  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
-done
-DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+    with open(installpath, "w") as f:
+        f.write(str_bin)
 
-WINEAPS=$HOME"/.wineapps"
+    os.chmod(installpath, _BIN_PERM)
 
-#UTILS
-function clearpath() {
-    local t
-    t=$(dirname "$1")
-    t=$t"/"$(basename "$1")
-    echo "$t"
-}
+def symlink(src, dst, remove = False):
+    if remove and os.path.exists(dst):
+        res, ret = srun('rm "{}"'.format(dst))
+        if ret != 0:
+            return res, ret
+    return srun('ln -s "{}" "{}"'.format(src, dst))
 
-function runas() {
-    cd "$(dirname "$2")"
-    WINEPREFIX="$1" wine start /unix "$(basename "$2")" ${@:3}
-}
+def fixprefix(prefix, prefixpath, username = ""):
+    # figure it out the username used in this prefix {path}/drive_c/users/
+    # ... by finding a path containing a Public folder, which happens inside the user's home
+    home, ret = srun('find "{path}" -maxdepth 1 -mindepth 1 -type d ! -path "*Public" | head -n 1'.format(
+        path = os.path.join(prefixpath, "drive_c/users/")))
+    old_username = os.path.basename(home)
+
+    # get the actual user name if none was given
+    if len(username) < 1:
+        username = getpass.getuser()
+
+    # fix username if old differs from the actual
+    if old_username != username:
+        print("This prefix's username differs from the actual username. Fixing that...")
+
+        # move home
+        newhome = os.path.join(os.path.dirname(home), username)
+        os.rename(home, newhome)
+        home = newhome
+
+        # fix regs
+        srun('sed -i "s/{old}/{new}/g" "{prefix}"'.format(
+            old = old_username, new = username,
+            prefix = os.path.join(prefixpath, "user.reg")))
+        srun('sed -i "s/{old}/{new}/g" "{prefix}"'.format(
+            old = old_username, new = username,
+            prefix = os.path.join(prefixpath, "userdef.reg")))
+        srun('sed -i "s/{old}/{new}/g" "{prefix}"'.format(
+            old = old_username, new = username,
+            prefix = os.path.join(prefixpath, "system.reg")))
+
+    # fix dosdevices
+    unixhome = os.path.expanduser('~')
+    srun('rm -rf "{}"*'.format(os.path.join(prefixpath, "dosdevices/")))
+
+    symlink(os.path.join(prefixpath, "drive_c"),
+        os.path.join(prefixpath, "dosdevices/c:"))
+    symlink(unixhome, os.path.join(prefixpath, "dosdevices/d:"))
+    symlink("/", os.path.join(prefixpath, "dosdevices/z:"))
+
+    # fix user's dirs
+    symlink(os.path.join(unixhome, "Desktop"), os.path.join(home, "Desktop"), True)
+    symlink(os.path.join(unixhome, "Pictures"), os.path.join(home, "My Pictures"), True)
+    symlink(os.path.join(unixhome, "Documents"), os.path.join(home, "My Documents"), True)
+    symlink(os.path.join(unixhome, "Music"), os.path.join(home, "My Music"), True)
+    symlink(os.path.join(unixhome, "Videos"), os.path.join(home, "My Videos"), True)
 
 
-# the base dir, or where wineapps is
-BDIR=$WINEAPS
-BDIR=$(clearpath "$BDIR")
+def install(prefix, allprefixes = False):
+    prefixes = {}
+    if args.all_prefixes:
+        prefixes = dict(config["prefixes"]);
+    elif args.install in config["prefixes"]:
+        prefixes = { args.install : config["prefixes"][args.install] }
+    
+    if len(prefixes) <= 0:
+        print("No prefixes selected or found")
+        return
+    
+    # for each prefix...
+    for prefix, path in prefixes.items():
+        path = os.path.expanduser(path)
+        prefixconfig_path = os.path.join(path, _PREFIX_CONFIG)
+        prefixconfig = loadconfig(prefixconfig_path,
+            "No config file found for prefix '{}' at '{}'. Skipping it".format(prefix, prefixconfig_path),
+            addroot = False, exit = False)
+        if not prefixconfig:
+            continue;
+
+        # for each app...
+        for app in prefixconfig.sections():
+            # desktop entry
+            launcherstr = desktopentry(
+                prefix      = prefix,
+                app         = app,
+                prefixpath  = path,
+                name        = getconfig(prefixconfig, app, "launcher_name"),
+                cmd         = getconfig(prefixconfig, app, "launcher_cmd"),
+                comment     = getconfig(prefixconfig, app, "launcher_comment"),
+                genericname = getconfig(prefixconfig, app, "launcher_genericname"),
+                icon        = getconfig(prefixconfig, app, "launcher_icon"),
+                category    = getconfig(prefixconfig, app, "launcher_category"),
+                path        = getconfig(prefixconfig, app, "launcher_path"),
+            )
+            print("Created launcher for {}/{}.".format(prefix, app))
+
+            # bin entry
+            binstr = binentry(
+                name = getconfig(prefixconfig, app, "bin_name"),
+                cmd  = getconfig(prefixconfig, app, "bin_cmd")
+            )
+            print("Created bin for {}/{}.".format(prefix, app))
+
+            #print(launcherstr)
+            #print(binstr)
+
+        # fix prefix
+        fixprefix(prefix, path)
+        print("Fixed the prefix {}.".format(prefix))
+
+def cleanall():
+    srun(os.path.expanduser('rm -f ~/.local/share/mime/packages/x-wine*'))
+    srun(os.path.expanduser('rm -f ~/.local/share/applications/wine-extension*'))
+    srun(os.path.expanduser('rm -f ~/.local/share/icons/hicolor/*/*/application-x-wine-extension*'))
+    srun(os.path.expanduser('rm -f ~/.local/share/mime/application/x-wine-extension*'))
+    srun(os.path.expanduser('rm -rf ~/.local/share/applications/wine'))
+    srun(os.path.expanduser('rm -f ~/.config/menus/applications-merged/wine*'))
+    srun(os.path.expanduser('rm -rf ~/.local/share/applications/wine'))
+    srun(os.path.expanduser('rm -f ~/.local/share/desktop-directories/wine*'))
+    srun(os.path.expanduser('rm -f ~/.local/share/icons/*/*/*/????_*.{xpm,png}'))
+    srun(os.path.expanduser('rm -f ~/.local/share/icons/*-x-wine-*.{xpm,png} }}}'))
+
+    #srun('update-mime-database')
+    print("Cleaned up")
+
+#print(args)
+#print(config.sections())
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#
+#                                       RUN APP
+#
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+def resolveargs(args, escapequoates = True, addz = True):
+    appargs = []
+    for arg in args:
+        # escape double quotes
+        if escapequoates:
+            arg = arg.replace('"','\\"')
+
+        # check if arg is a file and add z: to it
+        if addz:
+            if os.path.exists(arg):
+                arg = "z:" + os.path.abspath(arg)
+
+        appargs = appargs + [arg]
+    return " ".join(['"' + i + '"' for i in appargs])
+
+def runapp(prefix, app, args):
+    # check for existance of prefixes section in config file
+    if not "prefixes" in config:
+        print("Add the prefix section to the config file.")
+        sys.exit(1)
+
+    # check if the requested prefix is configured
+    if not prefix in config["prefixes"]:
+        print("Prefix '{}' not found.".format(prefix))
+        sys.exit(1)
+
+    # check if the path to the prefix exists and if it has a valid config file
+    prefixpath = os.path.expanduser(config["prefixes"][prefix])
+    prefix_config_file = os.path.join(prefixpath, _PREFIX_CONFIG)
+    prefix_config = loadconfig(prefix_config_file,
+        "No config file found at prefix: '{}'".format(prefix_config_file),
+        addroot = False)
+
+    # if running without app, go ahead
+    if not app:
+        #appargs = resolveargs(args, noescapequotes, args.no_path_solving)
+        
+        appexec = 'WINEPREFIX="{}" {}'.format(
+            prefixpath,
+            args)
+        #print(appexec)
+        process = subprocess.Popen(appexec, shell=True)
+        process.wait()
+        sys.exit(0)
+
+    # check if app exists
+    if not app in prefix_config.sections():
+        print("No app '{}' found at prefix '{}'".format(app, prefix))
+        sys.exit(0)
+
+    # prepare arguments
+    #appargs = resolveargs(args, noescapequotes, args.no_path_solving)
+
+    # prepare exec command
+    appexec = 'WINEPREFIX="{}" wine start /unix "{}" {}'.format(
+        prefixpath,
+        os.path.join(prefixpath, prefix_config[app]["app"]),
+        args)
 
 
-# the request
-WA_PREFIX="$1"
-shift
-WA_APP="$1"
-shift
-WA_ARGS="$@"
+    # finally, run the wineapp
+    #print(appexec)
+    process = subprocess.Popen(appexec, shell=True)
+    if "fork" in prefix_config[app] and not prefix_config.getboolean(app, 'fork'):
+        process.wait()
 
-if [ -z "$WA_PREFIX" ]; then
-    echo "Usage: wineapps prefix [app [args]]"
-    exit 1
-fi
 
-# check the existance of the prefix
-WA_PDIR="$BDIR/prefixes/$WA_PREFIX"
-if [ ! -d "$WA_PDIR" ]; then
-    echo "'$WA_PDIR' not found."
-    exit 1;
-fi
-# check if the prefix has config file
-WA_CFGPATH="$BDIR/prefixes/$WA_PREFIX/wineapp.cfg"
-if [ ! -f "$WA_CFGPATH" ]; then
-    echo "'$WA_CFGPATH' not found. Please create a configuration file."
-    exit 1;
-fi
 
-# source this prefix config
-declare -A WA_APPS
-. $WA_CFGPATH
 
-# check if user gave an app or not
-if [[ -z "${WA_APP// }" ]]; then
-    # pick the first occurrence
-    for i in "${!WA_APPS[@]}"; do
-        WA_APP="$i"
-        break;
-    done
-    echo "No app specified. I've picked '$WA_APP' for you."
-fi
 
-# run the app or the command
-if [ "$WA_APP" == "noapp" ]; then
-    echo "Running in this wineprefix."
-    WINEPREFIX="$WA_PDIR" $WA_ARGS
-    exit 0
-elif [ -z ${WA_APPS[$WA_APP]+x} ]; then
-    echo "App not found. Executing the command."
-    runas "$WA_PDIR" "$WA_APP" $WA_ARGS
-    exit 0
-else
-    echo "Executing '$WA_APP'."
-    runas "$WA_PDIR" "$WA_PDIR/${WA_APPS[$WA_APP]}" $WA_ARGS &
-    exit 0
-fi;
-exit 1
+
+
+if __name__ == "__main__":
+    # running mode
+    if ("--run" in sys.argv):
+        # split app args from options args
+        iprefix = sys.argv.index("--run") if "--run" in sys.argv else 0
+        iapp    = sys.argv.index("--app") if "--app" in sys.argv else 0
+        appargs = sys.argv[max(iprefix, iapp) + 2:]
+        sysargs = sys.argv[:max(iprefix, iapp) + 2]
+        args, unknownargs = parser.parse_known_args(sysargs)
+        argstr  = resolveargs(appargs, not args.no_escape_quotes, not args.no_path_solving)
+
+        prefix = args.run
+        app = args.app
+
+        runapp(args.run, args.app, argstr)
+        sys.exit(0)
+
+    # configure mode
+    args, unknownargs = parser.parse_known_args()
+
+    if args.install is not None:
+        install(args.install, args.all_prefixes)
+        sys.exit(0)
+
+    if args.clean_x_wine:
+        cleanall()
+        sys.exit(0)
+
+    print("Nothing to be done. Have  a nice day")
+
+
+
+
+
+
+
+
+
 
 
 
