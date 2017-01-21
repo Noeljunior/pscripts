@@ -10,6 +10,9 @@
 # TODO
 #   - option to initialize a prefix with an empty config file
 #   - check for necessary items to creating a launcher or bin before doing it
+#   - auto-find prefixes and save to config file
+#   - replace {prefix} with prefix name on every shitty on 
+#   - replace {path} with prefix path
 
 import argparse
 import configparser
@@ -90,6 +93,10 @@ configgroup.add_argument("--all-prefixes", action="store_true", default = False,
                     help="iterate over all prefixes")
 configgroup.add_argument("--targz", metavar="FILE",
                     help="creates an archive with all known prefixes into a tar.gz")
+configgroup.add_argument("--find-prefixes", type=str, metavar="PATH",
+                    help="find prefixes at PATH and add them to the config file")
+configgroup.add_argument("--replace", action="store_true", default = False,
+                    help="removes all prefixes from config file and add all found")
 
 parser.add_argument("--no-escape-quotes", action="store_true", default = False,
                     help="do not escape quotes from arguments")
@@ -184,10 +191,10 @@ def binentry(name = "", cmd = ""):
     os.chmod(installpath, _BIN_PERM)
 
 def symlink(src, dst, remove = False):
-    if remove and os.path.exists(dst):
+    if remove:
         res, ret = srun('rm "{}"'.format(dst))
-        if ret != 0:
-            return res, ret
+        #if ret != 0:
+        #    return res, ret
     return srun('ln -s "{}" "{}"'.format(src, dst))
 
 def fixprefix(prefix, prefixpath, username = ""):
@@ -332,8 +339,30 @@ def targz(output):
             target,
             targz))
 
-#print(args)
-#print(config.sections())
+def find_prefixes(path, replace = False):
+    if replace:
+        config.remove_section("prefixes")
+        config.add_section("prefixes")
+
+    for prefixpath in [ os.path.abspath(os.path.join(path, name)) for name in os.listdir(path) if os.path.isdir(os.path.join(path, name)) ]:
+        prefix = os.path.basename(prefixpath)
+        
+        if not os.path.exists(os.path.join(prefixpath, _PREFIX_CONFIG)):
+            print("Found something in '{}' but with no wineapp.cfg.".format(prefixpath))
+            continue
+        
+        if config.has_option("prefixes", prefix) and not replace:
+            print("Prefix '{}' at '{}' already added.".format(prefix, prefixpath))
+            continue
+        
+        config.set("prefixes", prefix, prefixpath)
+        print("Found and added prefix '{}' at '{}'.".format(prefix, prefixpath))
+
+    with open(_CONFIG_FILE, 'w') as configfile:
+        config.write(configfile)
+
+
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #
 #                                       RUN APP
@@ -441,6 +470,10 @@ if __name__ == "__main__":
 
     if args.targz:
         targz(args.targz)
+        sys.exit(0)
+
+    if args.find_prefixes:
+        find_prefixes(args.find_prefixes, args.replace)
         sys.exit(0)
 
     print("Nothing to be done. Have  a nice day")
