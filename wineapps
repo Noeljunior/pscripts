@@ -17,6 +17,7 @@ import os
 import sys
 import subprocess
 import getpass
+import time
 
 _CONFIG_FILE = os.path.expanduser("~/.config/wineapps.cfg")
 _PREFIX_CONFIG = "wineapp.cfg"
@@ -88,8 +89,10 @@ configgroup.add_argument("--clean-x-wine", action="store_true", default = False,
                     help="cleans all wine shortus, file associations and MIME types")
 configgroup.add_argument("--all-prefixes", action="store_true", default = False,
                     help="iterate over all prefixes")
-configgroup.add_argument("--targz", metavar="FILE",
+configgroup.add_argument("--targz", metavar="FILE", nargs='?', const = "",
                     help="creates an archive with all known prefixes into a tar.gz")
+configgroup.add_argument("--suffix", type=str, metavar="SUFFIX",
+                    help="add this suffix to the tar.gz file")
 configgroup.add_argument("--find-prefixes", type=str, metavar="PATH",
                     help="find prefixes at PATH and add them to the config file")
 configgroup.add_argument("--replace", action="store_true", default = False,
@@ -242,13 +245,14 @@ def fixprefix(prefix, prefixpath, username = ""):
     symlink(os.path.join(unixhome, "Videos"), os.path.join(home, "My Videos"), True)
 
 
-def install(prefix, allprefixes = False):
+def install(prefix):
     prefixes = {}
-    if args.all_prefixes:
+    if not prefix:
         prefixes = dict(config["prefixes"]);
-    elif args.install in config["prefixes"]:
-        prefixes = { args.install : config["prefixes"][args.install] }
-    
+    elif prefix in config["prefixes"]:
+        prefixes = { prefix : config["prefixes"][prefix] }
+
+
     if len(prefixes) <= 0:
         print("No prefixes selected or found")
         return
@@ -311,12 +315,23 @@ def cleanall():
     #srun('update-mime-database')
     print("Cleaned up")
 
-def targz(output):
+def targz(prefix, suffix):
     # list of all prefixes
-    prefixes = dict(config["prefixes"]);
+    prefixes = {}
+    if not prefix:
+        prefixes = dict(config["prefixes"]);
+    elif prefix in config["prefixes"]:
+        prefixes = { prefix : config["prefixes"][prefix] }
+
     if len(prefixes) <= 0:
-        print("No prefixes found")
+        print("No prefixes selected or found")
         return
+
+    if suffix is None:
+        suffix = time.strftime("%Y%m%d")
+
+    if len(suffix) > 0:
+        suffix = "-" + suffix
 
     #prefixesstr = []
     for prefix, path in prefixes.items():
@@ -325,7 +340,7 @@ def targz(output):
             path = path[:-1]
         parent = os.path.dirname(path)
         target = os.path.relpath(path, parent)
-        targz = "{}-{}.tar.gz".format(os.path.basename(target), output)
+        targz = "{}{}.tar.gz".format(os.path.basename(target), suffix)
 
         if os.path.exists(targz):
             print("'{}' exists. Remove it first if you want to overwrite.".format(
@@ -421,7 +436,7 @@ def runapp(prefix, app, args):
     #appargs = resolveargs(args, noescapequotes, args.no_path_solving)
 
     # prepare exec command
-    appexec = 'WINEPREFIX="{}" wine start /unix "{}" {}'.format(
+    appexec = 'WINEPREFIX="{}" wine "{}" {}'.format(
         prefixpath,
         os.path.join(prefixpath, prefix_config[app]["app"]),
         args)
@@ -457,25 +472,25 @@ if __name__ == "__main__":
         sys.exit(0)
 
     # configure mode
-    args, unknownargs = parser.parse_known_args()
-
-    if args.install is not None:
-        install(args.install, args.all_prefixes)
-        sys.exit(0)
-
-    if args.clean_x_wine:
-        cleanall()
-        sys.exit(0)
-
-    if args.targz:
-        targz(args.targz)
-        sys.exit(0)
+    args = parser.parse_args()
 
     if args.find_prefixes:
         find_prefixes(args.find_prefixes, args.replace)
-        sys.exit(0)
+        #sys.exit(0)
 
-    print("Nothing to be done. Have  a nice day")
+    if args.install is not None:
+        install(args.install)
+        #sys.exit(0)
+
+    if args.clean_x_wine:
+        cleanall()
+        #sys.exit(0)
+
+    if args.targz:
+        targz(args.targz, args.suffix)
+        #sys.exit(0)
+
+    #print("Nothing to be done. Have  a nice day")
 
 
 
