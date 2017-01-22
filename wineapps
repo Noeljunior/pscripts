@@ -10,6 +10,7 @@
 # TODO
 #   - option to initialize a prefix with an empty config file
 #   - check for necessary items to creating a launcher or bin before doing it
+#   - apps to add: gta:sa; nfs:mw
 
 import argparse
 import configparser
@@ -30,7 +31,9 @@ def loadconfig(path, errorstr = "Error.", exit = True, addroot = True, defaults 
     try:
         with open(path, 'r') as f:
             if addroot:
-                config_string = '[ROOT]\n' + f.read()
+                config_string = f.read()
+                if '[ROOT]' not in config_string:
+                    config_string = '[ROOT]\n' + config_string
             else:
                 config_string = f.read()
     except:
@@ -84,11 +87,9 @@ configgroup = parser.add_argument_group("Configure wineapps")
 #configgroup.add_argument("--add-prefix", type=str, metavar="PREFIX",
 #                    help="install all apps of the PREFIX")
 configgroup.add_argument("--install", metavar="PREFIX", nargs='?', const = "",
-                    help="install all apps of the PREFIX")
+                    help="install all apps of the all prefixes or of the PREFIX prefix, is specified")
 configgroup.add_argument("--clean-x-wine", action="store_true", default = False,
                     help="cleans all wine shortus, file associations and MIME types")
-configgroup.add_argument("--all-prefixes", action="store_true", default = False,
-                    help="iterate over all prefixes")
 configgroup.add_argument("--targz", metavar="FILE", nargs='?', const = "",
                     help="creates an archive with all known prefixes into a tar.gz")
 configgroup.add_argument("--suffix", type=str, metavar="SUFFIX",
@@ -100,6 +101,8 @@ configgroup.add_argument("--replace", action="store_true", default = False,
 
 parser.add_argument("--no-escape-quotes", action="store_true", default = False,
                     help="do not escape quotes from arguments")
+parser.add_argument("--use-start", action="store_true", default = False,
+                    help="start app with 'wine start /unix' instead of 'wine'")
 parser.add_argument("--no-path-solving", action="store_true", default = False,
                     help="if set, I will not try to solve the given paths on arguments")
 
@@ -397,7 +400,7 @@ def resolveargs(args, escapequoates = True, addz = True):
         appargs = appargs + [arg]
     return " ".join(['"' + i + '"' for i in appargs])
 
-def runapp(prefix, app, args):
+def runapp(prefix, app, args, usestart = False):
     # check for existance of prefixes section in config file
     if not "prefixes" in config:
         print("Add the prefix section to the config file.")
@@ -417,8 +420,6 @@ def runapp(prefix, app, args):
 
     # if running without app, go ahead
     if not app:
-        #appargs = resolveargs(args, noescapequotes, args.no_path_solving)
-        
         appexec = 'WINEPREFIX="{}" {}'.format(
             prefixpath,
             args)
@@ -432,12 +433,10 @@ def runapp(prefix, app, args):
         print("No app '{}' found at prefix '{}'".format(app, prefix))
         sys.exit(0)
 
-    # prepare arguments
-    #appargs = resolveargs(args, noescapequotes, args.no_path_solving)
-
     # prepare exec command
-    appexec = 'WINEPREFIX="{}" wine "{}" {}'.format(
+    appexec = 'WINEPREFIX="{}" wine {}"{}" {}'.format(
         prefixpath,
+        "start /unix " if usestart else "",
         os.path.join(prefixpath, prefix_config[app]["app"]),
         args)
 
@@ -468,7 +467,7 @@ if __name__ == "__main__":
         prefix = args.run
         app = args.app
 
-        runapp(args.run, args.app, argstr)
+        runapp(args.run, args.app, argstr, args.use_start)
         sys.exit(0)
 
     # configure mode
