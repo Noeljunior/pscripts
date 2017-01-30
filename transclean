@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# the folder to move completed downloads to
+
+# port, username, password
+SERVER="9091 --auth :didimico8990"
+
+# use transmission-remote to get torrent list from transmission-remote list
+# use sed to delete first / last line of output, and remove leading spaces
+# use cut to get first field from each line
+while true; do 
+    TLIST=`transmission-remote $SERVER --list | sed -e '1d;$d;s/^ *//' | cut --only-delimited --delimiter=" " --fields=1`
+
+    # for each torrent in the list
+    for TID in $TLIST; do
+        # check if torrent download is completed
+        DL_COMPLETED=`transmission-remote $SERVER --torrent $TID --info | grep "Percent Done: 100%"`
+
+        # check torrents current state is
+        STATE_STOPPED=`transmission-remote $SERVER --torrent $TID --info | grep "State: Seeding\|Stopped\|Finished\|Idle"`
+        #echo $STATE_STOPPED "$DL_COMPLETED"
+
+        # if the torrent is "Stopped", "Finished", or "Idle after downloading 100%"
+        if [ "$DL_COMPLETED" ] && [ "$STATE_STOPPED" ]; then
+            # move the files and remove the torrent from Transmission
+            echo "Removing #$TID: completed."
+            transmission-remote $SERVER --torrent "$TID" --remove > /dev/null
+        fi
+    done
+
+    sleep 30
+done
+
+#while read -r TID; do
+    #echo "$TID" | cut -d' ' -f 1
+#done <<< "$TLIST"
