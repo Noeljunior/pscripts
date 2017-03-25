@@ -97,29 +97,32 @@ dologin
 dosetup
 
 
-res=$(yad --title="Add torrent/magnet/link" \
-    --form \
-    --width=400 \
-    --separator='' \
-    --button="Setup":100\
-    --button="Cancel"\
-    --button="Download":0\
-    --field="Do you want to add this torrent/magnet/link?":LBL \
-    --field="Torrent/magnet/link: " \
-    "" "$1")
+if [ "" -ne "" ] ; then
+    res=$(yad --title="Add torrent/magnet/link" \
+        --form \
+        --width=400 \
+        --separator='' \
+        --button="Setup":100\
+        --button="Cancel"\
+        --button="Download":0\
+        --field="Do you want to add this torrent/magnet/link?":LBL \
+        --field="Torrent/magnet/link: " \
+        "" "$1")
 
-resexit="$?"
+    resexit="$?"
 
-if [ "$resexit" -eq 100 ] ; then
-    SESSID=""
-    dosetup
-    "$0" "$1" &
-    exit 0
+    if [ "$resexit" -eq 100 ] ; then
+        SESSID=""
+        dosetup
+        "$0" "$1" &
+        exit 0
+    fi
+
+    if [ "$resexit" -ne 0 ] ; then
+        exit 0
+    fi
 fi
-
-if [ "$resexit" -ne 0 ] ; then
-    exit 0
-fi
+res="$1"
 
 
 if [ -f "$res" ] ; then
