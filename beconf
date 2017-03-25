@@ -1,0 +1,69 @@
+#!/bin/bash
+
+# Bash Easy CONFig
+# this aims to be an ungly and easy way to save some config values
+
+# TODO
+#   delete
+
+BECWBDIR="$HOME/.config"
+BECWDIR="beconf"
+
+function becdir() {
+    # sets the dir to working with inside the base dir
+    BECWBDIR="$HOME/.config"
+    BECWDIR="beconf"
+
+    local wbasedir="$(dirname "$1")"
+    local wdir="$(basename "$1")"
+
+    if [ "$wbasedir" = "." ] ; then 
+        # received a dir
+        wbasedir="$BECWBDIR"
+    fi
+
+    BECWBDIR="$wbasedir"
+    BECWDIR="$wdir"
+
+    # create that wdir
+    mkdir -p "$BECWBDIR/$BECWDIR"
+}
+
+function becget() {
+    # touch the fle and sets the default, if empty
+    local bfile="$BECWBDIR/$BECWDIR/$1"
+    local bdefault="$2"
+
+    # touch it
+    mkdir -p "$(dirname "$bfile")"
+    touch "$bfile"
+
+    # check if empty
+    local bret="$(cat "$bfile")"
+    if [ -z "$bret" ]; then
+        bret="$bdefault"
+    fi
+
+    # return
+    echo "$bret"
+}
+
+function becset() {
+    # write value to file
+    local bfile="$BECWBDIR/$BECWDIR/$1"
+    echo "$2" > "$bfile"
+}
+
+function becdelval() {
+    # deletes a value (file)
+    local bfile="$BECWBDIR/$BECWDIR/$1"
+    rm "$bfile"
+}
+
+function becdelall() {
+    # deletes the dir
+    rm -r "$BECWBDIR/$BECWDIR"
+}
+
+
+
