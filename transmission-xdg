@@ -1,0 +1,154 @@
+#!/bin/bash
+# transmission-remote-magnet
+# Usage: transmission-remote-magnet <magnet URL>
+#
+# Modified from https://gist.github.com/sbisbee/8215353
+
+# TODO detect if the input is a file and, if it is, upload it
+
+DEPS="yad jq"
+
+LINK="$1"
+
+
+#source beconf
+BECONF=$(whereis -b beconf)
+BECONF=${BECONF#*: }
+source "$BECONF"
+
+# init beconf
+becdir "xdgtransmission"
+RPCURI=$(becget rpcuri)
+WEBURI=$(becget weburi)
+USER=$(becget user)
+PASS=$(becget pass)
+
+function dologin() {
+    SESSID=$(curl --silent --anyauth --user $USER:$PASS "$RPCURI" | sed 's/.*<code>//g;s/<\/code>.*//g')
+}
+
+function dosetup() {
+    while true ; do
+        if [[ "$SESSID" == *"X-Transmission-Session-Id"* ]] ; then
+            #echo "logged in."
+            break
+        fi
+
+        res=$(yad --title="Setup your transmission login" \
+            --form \
+            --width=400 \
+            --separator='\0330' \
+            --field="RPC URI" \
+            --field="Web UI URL" \
+            --field="Username" \
+            --field="Password":H \
+            "$RPCURI" "$WEBURI" "$USER" "$PASS")
+
+        if [ -z "$res" ]; then
+            exit 1
+        fi
+        
+        RPCURI=$(echo "$res" | awk -F'\0330' '{print $1}')
+        WEBURI=$(echo "$res" | awk -F'\0330' '{print $2}')
+        USER=$(echo "$res" | awk -F'\0330' '{print $3}')
+        PASS=$(echo "$res" | awk -F'\0330' '{print $4}')
+
+        becset "rpcuri" "$RPCURI"
+        becset "weburi" "$WEBURI"
+        becset "user" "$USER"
+        becset "pass" "$PASS"
+
+        dologin
+
+        #echo "$RPCURI - $WEBURI - $USER - $PASS"
+        #echo "$SESSID"
+
+    done
+}
+
+function doinstall() {
+    execname=$(basename $0)
+    desktopdir="$HOME/.local/share/applications/$execname.desktop"
+    cat > "$desktopdir" <<DELIM
+[Desktop Entry]
+Encoding=UTF-8
+Name=Transmission Magnet Opner
+Exec=$execname %U
+Type=Application
+Terminal=false
+MimeType=x-scheme-handler/magnet;
+NoDisplay=true
+DELIM
+
+    xdg-mime default "$execname.desktop" x-scheme-handler/magnet
+    
+    echo "installed."
+}
+
+# check if server is online/credentials are OK
+
+if [[ "$@" == *"--install"* ]] ; then
+    doinstall
+    exit 0
+fi
+
+
+dologin
+dosetup
+
+
+res=$(yad --title="Add torrent/magnet/link" \
+    --form \
+    --width=400 \
+    --separator='' \
+    --button="Setup":100\
+    --button="Cancel"\
+    --button="Download":0\
+    --field="Do you want to add this torrent/magnet/link?":LBL \
+    --field="Torrent/magnet/link: " \
+    "" "$1")
+
+resexit="$?"
+
+if [ "$resexit" -eq 100 ] ; then
+    SESSID=""
+    dosetup
+    "$0" "$1" &
+    exit 0
+fi
+
+if [ "$resexit" -ne 0 ] ; then
+    exit 0
+fi
+
+
+if [ -f "$res" ] ; then
+    echo "File upload not supported"
+else
+    res=$(curl --max-time 3 --silent --anyauth --user $USER:$PASS --header "$SESSID" "$RPCURI" -d "{\"method\":\"torrent-add\",\"arguments\":{\"filename\":\"${res}\"}}")
+    
+    result=$(echo "$res" | jq .result)
+    
+    if [[ "$result" == *"success"* ]] ; then
+        state="added"
+
+        result=$(echo "$res" | jq '.arguments["torrent-added"]')
+        if [ "$result" != "null" ] ; then
+            name=$(echo "$res" | jq '.arguments["torrent-added"]["name"]')
+        fi
+        
+        result=$(echo "$res" | jq '.arguments["torrent-duplicate"]')
+        if [ "$result" != "null" ] ; then
+            name=$(echo "$res" | jq '.arguments["torrent-duplicate"]["name"]')
+            state="already added"
+        fi
+        
+        echo "$name" "$state"
+        notify-send "$name" "$state" -i transmission
+    else
+        echo "not added"
+        notify-send "Not added!" "Some error occurred such as bad URI or the connection timed out.\nTry again and/or check the URI." -i transmission
+    fi
+fi
+
+
