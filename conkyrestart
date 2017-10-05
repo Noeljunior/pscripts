@@ -1,3 +1,0 @@
-#!/bin/sh
-killall -9 conky
-conky --config /home/liam/.config/conky/conkyrc

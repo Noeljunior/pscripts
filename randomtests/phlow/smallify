@@ -32,7 +32,8 @@ findall "$DST" > "$FILELIST"
 # resize if needed
 function resizy {
     #convert -quality "0%" -resize "700x700>" "$1" "$1"
-    convert "$1" -auto-orient -filter spline -quality "75%" -resize "700x700>" -unsharp 0x1 "$1"
+    #convert "$1" -auto-orient -filter spline -quality "75%" -resize "700x700>" -unsharp 0x1 "$1"
+    convert "$1" -rotate "-90<" -filter spline -quality "75%" -resize "1000x1000>" -unsharp 0x1 "$1"
     #convert "$1" -auto-orient -filter spline -quality "0%" -resize "400x400>" -unsharp 0x1 "$1"
     #convert -quality "0%" -resize "300x300>" "$1" "$1.webp"
     echo "$1: converted"

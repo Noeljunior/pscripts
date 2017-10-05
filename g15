@@ -1,6 +1,0 @@
-#!/bin/bash
-
-sudo g15daemon
-sleep 3;
-nohup g15macro > /dev/null &
-nohup g15stats > /dev/null &

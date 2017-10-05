@@ -1,0 +1,11 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = linux-ck-skylake
+
+[Action]
+Description = Signing Kernel for SecureBoot
+When = PostTransaction
+Exec = /usr/bin/sbsign --key /home/liam/.efikeys/db.key --cert /home/liam/.efikeys/db.crt --output /boot/vmlinuz-linux-ck-skylake /boot/vmlinuz-linux-ck-skylake
+Depends = sbsigntools

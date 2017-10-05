@@ -10,7 +10,7 @@
 # TODO
 #   - option to initialize a prefix with an empty config file
 #   - check for necessary items to creating a launcher or bin before doing it
-#   - apps to add: gta:sa; nfs:mw
+#   - apps to add: gta:sa; nfs:mw, trackmania:nf
 
 import argparse
 import configparser

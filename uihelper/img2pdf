@@ -1,0 +1,59 @@
+#!/bin/bash
+
+DEPS="yad"
+
+IMGS=""
+
+for f in "$@"
+do
+    IMGS="$IMGS$f!"
+done
+
+res=$(yad --title="Imagens para PDF" \
+--form \
+--width=400 \
+--item-separator=' ' \
+--item-separator='!' \
+--field="Imagens...":MFL \
+--field="Resoluação":CB \
+--field="Posição":CB \
+--field="Guardar em":SFL \
+"$IMGS" "300!150!100!72" "Centro!Norte!Sul!Este!Oeste" "");
+
+IMGS=$(echo "$res" | cut -d'|' -f1)
+RESULUTION=$(echo "$res" | cut -d'|' -f2)
+GRAVITY=$(echo "$res" | cut -d'|' -f3)
+FILE=$(echo "$res" | cut -d'|' -f4)
+
+if [[ "$IMGS" == *\! ]]; then
+    ${IMGS::-1}
+fi;
+
+echo $IMGS
+echo $RESULUTION
+echo $GRAVITY
+echo $FILE
+
+if [[ ! "$FILE" == *.pdf ]]; then
+    FILE="$FILE.pdf"
+fi;
+
+if [ -e "$FILE" ]; then
+    res=$(yad --title="Imagens para PDF" \
+    --form \
+    --width=400 \
+    --field="O ficheiro '$FILE' já existe. Reescrever?":LBL \
+    );
+
+    if [ ! $? -eq 0 ]; then
+        echo "Aborted."
+        exit 1
+    fi
+fi;
+
+
+
+
+#i=60; convert lidl-nowarranty.jpg atmega328w.png IMG_20161205_134418.jpg -compress jpeg -quality 70 \ 
+#      -resize $((i*827/100))x$((i*1169/100)) -density ${i}x${i} \
+#      -extent $((i*827/100))x$((i*1169/100)) -units PixelsPerInch -gravity north multipage.pdf

@@ -1,0 +1,48 @@
+#!/bin/python3
+
+import os
+import sys
+import subprocess
+
+root = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+
+def computepath(startpath):
+    path = set([])
+    for root, dirs, files in os.walk(startpath, topdown=True):
+        if os.path.basename(root).startswith(".") or \
+           ".pignoreall" in files:
+            dirs[:] = []
+            continue 
+
+        if ".pignore" in files:
+            continue
+
+        path.add(root)
+    return ':' + ':'.join(path)
+
+if len(sys.argv) is not 2:
+    print("ERROR: give one and only one action: 'update-path' or 'update'")
+    sys.exit(1)
+
+
+if sys.argv[1] == "update-path":
+    filesh = '/etc/profile.d/pscripts.sh'
+    cmd = "echo 'export PATH=$PATH{}' > '{}' && chmod +x '{}'".format(
+        computepath(root), filesh, filesh)
+
+    if (os.geteuid() >= 1000):
+        print('You need root privileges to do this.')
+        process = subprocess.Popen("sudo {} update-path".format(sys.argv[0]), shell=True)
+        process.wait()
+        sys.exit(0)
+
+    process = subprocess.Popen(cmd, shell=True)
+    process.wait()
+
+    print("Done.")
+
+elif sys.argv[1] == "update":
+    process = subprocess.Popen("git-pull", cwd=root, shell=True)
+    process.wait()
+else:
+    print("'{}' is not a valid action.".format(sys.argv[1]))

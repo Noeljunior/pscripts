@@ -1,0 +1,1 @@
+gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=2016.pdf -c .setpdfwrite -f comprovativo-IRS-2016-Anexo-A.pdf

@@ -1,0 +1,115 @@
+#!/bin/python3
+
+
+
+import gi
+gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk
+
+
+class FormWindow(Gtk.Window):
+
+    def __init__(self, title=""):
+        Gtk.Window.__init__(self, title=title)
+
+        self.set_border_width(6)
+        self.set_resizable(False)
+        #self.set_default_size(10, 10)
+
+        self.maingrid = Gtk.Grid(column_homogeneous=False)
+        self.maingrid.set_column_spacing(10)
+        self.maingrid.set_row_spacing(6)
+        self.add(self.maingrid)
+
+        self.row = 0
+
+        self.connect("delete-event", Gtk.main_quit)
+
+        #self.show_all()
+
+    def open(self):
+        self.show_all()
+        Gtk.main()
+
+
+    def addrow(self, child1, child2 = None):
+        self.maingrid.attach(child1, 0, self.row, 1, 1)
+        self.maingrid.attach(child2, 1, self.row, 1, 1)
+        self.row = self.row + 1
+        #self.show_all()
+
+    def settitle(self, txt):
+        self.maintitle = Gtk.Label(txt)
+        self.maingrid.attach(self.maintitle, 0, -2, 2, 1)
+        self.maingrid.attach(Gtk.Label(""), 0, -1, 2, 1)
+        #self.show_all()
+
+    def setbuttons2(self, btns):
+        box = Gtk.Box(spacing=6, homogeneous=False)
+
+        for butt in btns:
+            if isinstance(butt, str):
+                b = Gtk.Button(label = butt)
+                if butt[1]: b.connect("clicked", butt[1])
+                box.pack_end(b, False, False, 0)
+            else:
+                box.pack_end(butt, False, False, 0)
+
+        self.maingrid.attach(Gtk.Label(""), 0, 99, 2, 1)
+        self.maingrid.attach(box, 0, 100, 2, 1)
+        #self.show_all()
+
+    def setbuttons2(self, btns):
+        box = Gtk.Box(spacing=6, homogeneous=False)
+
+        for butt in btns:
+            if isinstance(butt, list):
+                b = Gtk.Button(label = butt[0])
+                if butt[1]: b.connect("clicked", butt[1])
+                box.pack_end(b, False, False, 0)
+            else:
+                box.pack_end(butt, False, False, 0)
+
+        self.maingrid.attach(Gtk.Label(""), 0, 99, 2, 1)
+        self.maingrid.attach(box, 0, 100, 2, 1)
+        #self.show_all()
+
+    def clk_buttons(self, widget):
+        Gtk.main_quit()
+        #self.destroy()
+
+
+
+
+
+
+win = FormWindow("example")
+
+win.settitle("hey ya ya yo yo hey")
+button1 = Gtk.Button(label="Button 1")
+button2 = Gtk.Button(label="Button 2")
+button3 = Gtk.Button(label="Button 3")
+button4 = Gtk.Button(label="Button 4")
+button5 = Gtk.Button(label="Button 5")
+button6 = Gtk.Button(label="Button 6")
+label = Gtk.Label("This is a dialog to \ndisplay additional information")
+label2 = Gtk.Label("This is a dialog to display additia as d adas dssaonal information")
+
+entry = Gtk.Entry()
+
+win.addrow(label, entry)
+win.addrow(button2, button3)
+#win.addrow(Gtk.Label("asd"), Gtk.Button(label="Button 6"))
+#win.addrow(Gtk.Label("asd"), Gtk.Button(label="Button 6"))
+#win.addrow(Gtk.Label("asd"), Gtk.Button(label="Button 6"))
+#self.settitle("hey ya ya yo yo hey")
+win.setbuttons([["Ok", None], ["Cancel", win.clk_cancel], Gtk.Button(label = "tesda")])
+
+win.open()
+
+#Gtk.main()
+
+print("ya?", entry.get_text())
+
+
+

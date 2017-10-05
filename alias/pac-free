@@ -1,0 +1,7 @@
+#!/bin/bash
+
+echo "Clean pacman cache?"
+sudo pacman -Scc
+
+echo "Clean pacaur cache?"
+rm -rf ~/.cache/pacaur/*

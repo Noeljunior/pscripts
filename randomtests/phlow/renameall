@@ -27,8 +27,8 @@ for i in $(findall $LS); do
     fi;
         
 
-    #echo "mv \"$i\" \"$PF$new$extension\""
-    echo mv -- "$i" "$dirn/$PF$new$extension"
+     #mv \"$i\" \"$PF$new$extension\"
+    mv -- "$i" "$dirn/$PF$new$extension"
 
     let a=a+1
 done

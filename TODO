@@ -1,0 +1,3 @@
+- a way of installing this scripts to path and
+- a way of running archlinux/linux specific fixes/features
+- everytime xflock is updated, run a hook to patch it
