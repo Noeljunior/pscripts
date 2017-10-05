@@ -42,7 +42,7 @@ if sys.argv[1] == "update-path":
     print("Done.")
 
 elif sys.argv[1] == "update":
-    process = subprocess.Popen("git-pull", cwd=root, shell=True)
+    process = subprocess.Popen("git pull", cwd=root, shell=True)
     process.wait()
 else:
     print("'{}' is not a valid action.".format(sys.argv[1]))
