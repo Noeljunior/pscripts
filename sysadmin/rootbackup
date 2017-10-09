@@ -1,0 +1,8 @@
+#!/bin/bash
+
+SRC="$1"
+DST="$2"
+
+ESRC=$(echo "$SRC" | sed 's/\/$//')
+
+sudo rsync -aAXvP --exclude={"$ESRC/dev/*","$ESRC/proc/*","$ESRC/sys/*","$ESRC/tmp/*","$ESRC/run/*","$ESRC/mnt/*","$ESRC/media/*","$ESRC/swapfile","$ESRC/lost+found"} "$SRC/" "$DST"
