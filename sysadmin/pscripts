@@ -87,7 +87,7 @@ elif sys.argv[1] == "install": # install as a system package
                 filesdest.add(filedest)
 
         if len(filesdest) < 1:
-            continur
+            continue
 
         # add this dir to the final PATH
         paths.add(rootdest)
