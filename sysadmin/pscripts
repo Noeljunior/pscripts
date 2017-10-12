@@ -21,9 +21,11 @@ def computepath(startpath):
     return ':' + ':'.join(path)
 
 def installdir(path):
-    subprocess.call('install -m 755 -d "{}"'.format(path), shell=True)
+    if subprocess.call('install -m 755 -d "{}"'.format(path), shell=True) is not 0:
+        sys.exit(1)
 def installfile(path, file):
-    subprocess.call('install -m 644 -t "{}" "{}"'.format(path, file), shell=True)
+    if subprocess.call('install -m 644 -t "{}" "{}"'.format(path, file), shell=True) is not 0:
+        sys.exit(1)
 
 if len(sys.argv) < 2:
     print("ERROR: give one action: 'update-path', 'update', 'root' or 'install'")
