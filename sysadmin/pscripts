@@ -24,7 +24,7 @@ def installdir(path):
     if subprocess.call('install -m 755 -d "{}"'.format(path), shell=True) is not 0:
         sys.exit(1)
 def installfile(path, file):
-    if subprocess.call('install -m 644 -t "{}" "{}"'.format(path, file), shell=True) is not 0:
+    if subprocess.call('install -D -m 644 -t "{}" "{}"'.format(path, file), shell=True) is not 0:
         sys.exit(1)
 
 if len(sys.argv) < 2:
