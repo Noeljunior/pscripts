@@ -64,6 +64,17 @@ elif sys.argv[1] == "install": # install as a system package
         installlocation = "/opt/pscripts"
         print("Installing to: '{}'".format(installlocation))
 
+    try:
+        pathlocation = sys.argv[3]
+    except IndexError:
+        pathlocation = "/opt/pscripts"
+
+    try:
+        pathfile = sys.argv[4]
+    except IndexError:
+        pathfile = "/etc/profile.d/pscripts.sh"
+
+
     installdir(installlocation)
 
     paths = set([])
@@ -77,30 +88,34 @@ elif sys.argv[1] == "install": # install as a system package
             continue
 
         # compute destination dir
-        rootdest = os.path.join(installlocation, root)
+        rootdest = os.path.normpath(os.path.join(installlocation, root))
 
         # compute destination files
         filesdest = set([])
         for file in files:
-            filedest = os.path.join(root, file)
+            filedest = os.path.normpath(os.path.join(root, file))
             if os.access(filedest, os.X_OK):
                 filesdest.add(filedest)
 
         if len(filesdest) < 1:
             continue
 
-        print(root, filedest)
-
         # add this dir to the final PATH
-        paths.add(rootdest)
-        
+        paths.add(os.path.normpath(os.path.join(pathlocation, root)))
+
         # install dir
         installdir(rootdest)
 
         # install files
         for file in filesdest:
             installfile(rootdest, file)
-        
+
+    # build path
+    with open("./pscripts.sh", 'w') as f:
+        f.write('export PATH=$PATH:{}'.format(':'.join(paths)))
+
+    installfile(pathfile, "pscripts.sh")
+
     sys.exit(0)
 else:
     print("'{}' is not a valid action.".format(sys.argv[1]))
