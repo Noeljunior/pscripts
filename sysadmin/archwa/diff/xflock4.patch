@@ -1,0 +1,13 @@
+--- xflock4	2017-10-08 21:54:59.922251237 +0100
++++ xflock4.lightdm	2017-10-08 22:03:31.572574882 +0100
+@@ -24,6 +24,10 @@
+ PATH=/bin:/usr/bin
+ export PATH
+ 
++# lock with lightdm
++dm-tool lock >/dev/null 2>&1
++exit
++
+ # Lock by xscreensaver or gnome-screensaver, if a respective daemon is running
+ for lock_cmd in \
+     "xscreensaver-command -lock" \

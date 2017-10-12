@@ -38,22 +38,31 @@ function montit { # except hidden
     _filelist=$(cat "$FILELIST" | sed -n $_sed)
 
     if [ "$LAYOUT" = "20x30" ]; then
-        montage -label '%t' -font Helvetica \
+        montage -label '%t' -font DejaVu-Sans-Bold \
             -density 300 -units PixelsPerInch -pointsize 12  \
             -background '#ffffff' -fill '#000000' \
-            -define jpeg:size=600x400 \
-            -geometry 700x475+30+30  -tile 3x6 -rotate "-90<" \
+            -define jpeg:size=755x550 \
+            -geometry 755x550+20+5  -tile 3x6 -rotate "-90<" \
             $_filelist bmp:- | convert \
-                -geometry 2480x3508 \
-                -size 2480x3508 \
-                -extent 2480x3508 -gravity center - \
+                -geometry 2362x3543 \
+                -size 2362x3543 \
+                -extent 2362x3543 -gravity center - \
                 "$_fout"
     elif [ "$LAYOUT" = "fhd" ]; then
-        montage -label '%t' -font Helvetica \
+            #-define jpeg:size=400x400x -auto-orient \
+            #-geometry 475x475+10+10  -tile 3x2 \
+        montage -label '%t' -font DejaVu-Sans-Bold \
             -density 300 -units PixelsPerInch -pointsize 10  \
             -background '#000000' -fill '#ffffff' \
-            -define jpeg:size=400x400x \
-            -geometry 475x475+10+10  -tile 3x2 \
+            -define jpeg:size=620x467 -auto-orient \
+            -geometry 620x467+10+10  -tile 3x2 \
+            $_filelist "$_fout"
+    elif [ "$LAYOUT" = "2030" ]; then
+        montage -label '%t' -font DejaVu-Sans-Bold \
+            -density 72 -units PixelsPerInch -pointsize 22  \
+            -background '#ffffff' -fill '#000000' \
+            -define jpeg:size=533x367 -auto-orient \
+            -geometry 533x367+15+15 -tile 3x6 -rotate "-90<" \
             $_filelist "$_fout"
     elif [ "$LAYOUT" = "hd" ]; then
         montage -label '%t' -font Helvetica \
@@ -78,6 +87,9 @@ if [ "$LAYOUT" = "20x30" ]; then
 elif [ "$LAYOUT" = "fhd" ]; then
     nps=6
     fprex="CS-FHD-"
+elif [ "$LAYOUT" = "2030" ]; then
+    nps=18
+    fprex="CS-2030-"
 elif [ "$LAYOUT" = "hd" ]; then
     nps=6
     fprex="CS-HD-"
@@ -96,10 +108,10 @@ for ((i = 1 ; i <= count ; i++ )); do
     next="$DST/$fprex$fnn.jpg"
 
     # check if next exists
-    if [ -f "$now" ] && [ -f "$next" ]; then
-        echo "$now: exists and I think it is OK"
-        continue
-    fi
+    #if [ -f "$now" ] && [ -f "$next" ]; then
+    #    echo "$now: exists and I think it is OK"
+    #    continue
+    #fi
 
     echo "montit $nps $i $DST/$fprex$fn.jpg" >> "$ORDERLIST"
 done

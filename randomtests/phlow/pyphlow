@@ -1,0 +1,28 @@
+#!/bin/python3
+
+
+import os
+import sys
+import subprocess
+import exifread
+
+sys.argv[1]
+
+
+
+
+# Open image file for reading (binary mode)
+f = open(sys.argv[1], 'rb')
+
+# Return Exif tags
+tags = exifread.process_file(f)
+
+uuid = str(tags["Image DateTime"]).replace(" ", ".") + "-" + str(tags["MakerNote SerialNumber"]) + "-" + str(tags["MakerNote TotalShutterReleases"])
+
+#print('\n'.join(tags))
+#print(tags["Image DateTime"])
+#print(tags["MakerNote SerialNumber"])
+#print(tags["MakerNote TotalShutterReleases"])
+print(uuid)
+
+
