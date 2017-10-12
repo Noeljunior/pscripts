@@ -96,6 +96,9 @@ elif sys.argv[1] == "install": # install as a system package
         # install files
         for file in filesdest:
             installfile(rootdest, file)
-    
+        
+        sys.exit(0)
 else:
     print("'{}' is not a valid action.".format(sys.argv[1]))
+    sys.exit(1)
+sys.exit(1)
