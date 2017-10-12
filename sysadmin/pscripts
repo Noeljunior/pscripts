@@ -54,9 +54,9 @@ elif sys.argv[1] == "update":
 elif sys.argv[1] == "root":
     print(pscripstroot)
 elif sys.argv[1] == "install": # install as a system package
-    if (os.geteuid() >= 1000):
-        print('You need root privileges to do this.')
-        sys.exit(1)
+    #if (os.geteuid() >= 1000):
+    #    print('You need root privileges to do this.')
+    #    sys.exit(1)
 
     try:
         installlocation = sys.argv[2]
@@ -101,7 +101,7 @@ elif sys.argv[1] == "install": # install as a system package
         for file in filesdest:
             installfile(rootdest, file)
         
-        sys.exit(0)
+    sys.exit(0)
 else:
     print("'{}' is not a valid action.".format(sys.argv[1]))
     sys.exit(1)
