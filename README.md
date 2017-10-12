@@ -3,8 +3,6 @@ My personal scripts repo.
 
 This is in a messy state [and it will stay like that for a while, probably].
 
-Some I do create some alias, small scripts or a complete usefull tool and I don't have time to pack it in a individual repo with compilation/installation routines, etc. When that happens I just put that script in this repo.
-
 You may find some very small alias or some complete things. For example, there is a wineapps scripts that is kind off a prefix manager: it allows you to have a lot of different prefixes and run specific apps from each prefix or run a command as in that prefix in a easier way. You may also find some workarounds for the Arch Linux.
 
 #### Notice
