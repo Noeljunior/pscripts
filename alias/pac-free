@@ -5,3 +5,6 @@ sudo pacman -Scc
 
 echo "Clean pacaur cache?"
 rm -rf ~/.cache/pacaur/*
+
+echo "Remove orphaned packages?"
+sudo pacman -Rns $(pacman -Qtdq)
