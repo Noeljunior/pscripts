@@ -76,20 +76,22 @@ def skill(process):
 # parse args: TODO print prefix info; 
 parser = argparse.ArgumentParser()
 rungroup = parser.add_argument_group("Run an wineapp")
-rungroup.add_argument("--run", type=str, metavar="PREFIX",
-                    help="run within PREFIX")
-rungroup.add_argument("--app", type=str, metavar="PREFIX",
-                    help="run APP")
-rungroup.add_argument('arg', type=str, nargs='*',
+#rungroup.add_argument("--run", type=str, metavar="PREFIX",
+#                    help="run within PREFIX")
+#rungroup.add_argument("--app", type=str, metavar="PREFIX",
+#                    help="run APP")
+rungroup.add_argument("app", type=str, metavar="PREFIX/APP", nargs='?',
+                    help='run the APP in the PREFIX')
+rungroup.add_argument('args', type=str, metavar="...", nargs=argparse.REMAINDER, #nargs='*',
                     help="application arguments")
 
 configgroup = parser.add_argument_group("Configure wineapps")
 #configgroup.add_argument("--add-prefix", type=str, metavar="PREFIX",
 #                    help="install all apps of the PREFIX")
 configgroup.add_argument("--install", metavar="PREFIX", nargs='?', const = "",
-                    help="install all apps of the all prefixes or of the PREFIX prefix, is specified")
+                    help="install all apps of the all prefixes [or of the PREFIX prefix]")
 configgroup.add_argument("--clean-x-wine", action="store_true", default = False,
-                    help="cleans all wine shortus, file associations and MIME types")
+                    help="cleans all wine shortcus, file associations and MIME types")
 configgroup.add_argument("--targz", metavar="FILE", nargs='?', const = "",
                     help="creates an archive with all known prefixes into a tar.gz")
 configgroup.add_argument("--suffix", type=str, metavar="SUFFIX",
@@ -385,22 +387,7 @@ def find_prefixes(path, replace = False):
 #                                       RUN APP
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-def resolveargs(args, escapequoates = True, addz = True):
-    appargs = []
-    for arg in args:
-        # escape double quotes
-        if escapequoates:
-            arg = arg.replace('"','\\"')
-
-        # check if arg is a file and add z: to it
-        if addz:
-            if os.path.exists(arg):
-                arg = "z:" + os.path.abspath(arg)
-
-        appargs = appargs + [arg]
-    return " ".join(['"' + i + '"' for i in appargs])
-
-def runapp(prefix, app, args, usestart = False):
+def runapp(prefix, app, args, usestart = False, escapequoates = True, addz = True):
     # check for existance of prefixes section in config file
     if not "prefixes" in config:
         print("Add the prefix section to the config file.")
@@ -417,6 +404,21 @@ def runapp(prefix, app, args, usestart = False):
     prefix_config = loadconfig(prefix_config_file,
         "No config file found at prefix: '{}'".format(prefix_config_file),
         addroot = False, exit = True, defaults  = {"prefix" : prefix, "path" : prefixpath})
+
+    # resolv args array
+    appargs = []
+    for arg in args:
+        # escape double quotes
+        if escapequoates:
+            arg = arg.replace('"','\\"')
+
+        # check if arg is a file and add z: to it
+        if addz:
+            if os.path.exists(arg):
+                arg = "z:" + os.path.abspath(arg)
+
+        appargs = appargs + [arg]
+    args = " ".join(['"' + i + '"' for i in appargs])
 
     # if running without app, go ahead
     if not app:
@@ -454,24 +456,16 @@ def runapp(prefix, app, args, usestart = False):
 
 
 if __name__ == "__main__":
-    # running mode
-    if ("--run" in sys.argv):
-        # split app args from options args
-        iprefix = sys.argv.index("--run") if "--run" in sys.argv else 0
-        iapp    = sys.argv.index("--app") if "--app" in sys.argv else 0
-        appargs = sys.argv[max(iprefix, iapp) + 2:]
-        sysargs = sys.argv[:max(iprefix, iapp) + 2]
-        args, unknownargs = parser.parse_known_args(sysargs)
-        argstr  = resolveargs(appargs, not args.no_escape_quotes, not args.no_path_solving)
-
-        prefix = args.run
-        app = args.app
-
-        runapp(args.run, args.app, argstr, args.use_start)
-        sys.exit(0)
-
-    # configure mode
+    # parse the args
     args = parser.parse_args()
+
+
+    if args.app is not None: # there's an app!
+        prefix, sep, app = args.app.partition("/")
+
+        runapp(prefix, app, args.args, args.use_start,
+                not args.no_escape_quotes, not args.no_path_solving)
+        sys.exit(0)
 
     if args.find_prefixes:
         find_prefixes(args.find_prefixes, args.replace)
