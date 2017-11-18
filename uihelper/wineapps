@@ -28,7 +28,7 @@ import collections
 _CONFIG_FILE = os.path.expanduser("~/.config/wineapps.cfg")
 _PREFIX_CONFIG = "wineapp.cfg"
 _LAUNCHER_PATH = "~/.local/share/applications/"
-_BIN_PATH = "~/.scripts"
+_BIN_PATH = "~/.config/wineappsbins"
 _BIN_PERM = 0o755
 
 
@@ -123,7 +123,7 @@ if not os.path.exists(_CONFIG_FILE):
 # Global settings
 
 # launcher_path = ~/.local/share/applications/
-# bin_path = ~/.scripts
+# bin_path = ~/.config/wineappsbins
 # bin_perm = 0755
 
 [prefixes]
@@ -186,6 +186,10 @@ Path={path}
         f.write(str_launcher)
 
 def binentry(name = "", cmd = ""):
+    if not os.path.isdir(_BIN_PATH):
+        print("Invalid bin path ({}). Skiping it".format(_BIN_PATH))
+        return False
+
     # prepare args
     installpath = os.path.join(os.path.expanduser(_BIN_PATH), name)
 
@@ -201,6 +205,7 @@ def binentry(name = "", cmd = ""):
         f.write(str_bin)
 
     os.chmod(installpath, _BIN_PERM)
+    return True
 
 def symlink(src, dst, remove = False):
     if remove:
@@ -299,11 +304,11 @@ def install(prefix):
             print("Created launcher for {}/{}.".format(prefix, app))
 
             # bin entry
-            binstr = binentry(
+            if binentry(
                 name = getconfig(prefixconfig, app, "bin_name"),
                 cmd  = getconfig(prefixconfig, app, "bin_cmd")
-            )
-            print("Created bin for {}/{}.".format(prefix, app))
+            ):
+                print("Created bin for {}/{}.".format(prefix, app))
 
             #print(launcherstr)
             #print(binstr)
