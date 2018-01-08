@@ -1,9 +1,0 @@
-<action>
-    <icon>image-x-generic-symbolic</icon>
-    <name>To PDF</name>
-    <unique-id>1484510692611867-1</unique-id>
-    <command>pyimg2pdf %F</command>
-    <description>Convert images to PDF</description>
-    <patterns>*</patterns>
-    <image-files/>
-</action>
