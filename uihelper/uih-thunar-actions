@@ -1,0 +1,116 @@
+#!/bin/python3
+
+import xml.etree.ElementTree as ET
+import shutil
+from os.path import abspath, expanduser, normpath, join, exists, dirname, realpath
+from os import listdir
+from argparse import ArgumentParser
+from sys import exit
+
+ucafile = expanduser("~/.config/Thunar/uca.xml")
+actions = join(realpath(dirname(__file__)), "thunar-actions")
+
+# parse the args
+parser = ArgumentParser()
+parser.add_argument("--list", action="store_true",
+                    help='List available actions')
+parser.add_argument("--actions", metavar="PATH",
+                    help='Path to the actions')
+parser.add_argument("--add", metavar="NAME", nargs="+",
+                    help='Adds an action')
+parser.add_argument("--add-all", action="store_true",
+                    help='Adds all available actions')
+#parser.add_argument("--replace", metavar="NAME", nargs="+",
+#                    help='Removes all and add these all')
+parser.add_argument("--replace-all", action="store_true",
+                    help='Removes all and add all available')
+parser.add_argument("--remove", metavar="UNIQUE-ID", nargs="+",
+                    help='Removes an action')
+parser.add_argument("--remove-all", action="store_true",
+                    help='Removes all actions')
+
+args = parser.parse_args()
+
+if args.actions:
+    actions = realpath(args.actions)
+
+# read actions
+#print(actions)
+actionslist = {}
+for fnaction in listdir(actions):
+    paction = join(actions, fnaction)
+    #print(fnaction)
+     
+    try:
+        tree = ET.parse(paction)
+        root = tree.getroot()
+        #print(root.tag)
+        if root.tag != "action":
+            #print(paction + ": not a valid action")
+            continue
+
+        actionslist[fnaction] = root
+    except:
+       #print(paction + ": not a valid action")
+       continue
+
+if args.list:
+    for name, action in actionslist.items():
+        print(name)
+    exit(0)
+
+# WORKAROUND for the Thunar's bad xml header
+with open(ucafile) as ff:
+    line = ff.readline()
+
+    shit = """<?xml encoding="UTF-8" version="1.0"?>"""
+    ok = """<?xml version="1.0" encoding="UTF-8"?>"""
+
+    if shit in line:
+        line = line.replace(shit, ok)
+        print("Fixing xml header")
+        with open(ucafile, mode="w") as tf:
+            tf.write(line)
+            shutil.copyfileobj(ff, tf)
+
+tree = ET.parse(ucafile)
+treeroot = tree.getroot()
+#print(tree.getroot())
+
+
+    
+# remove actions
+if args.remove_all or args.replace_all:
+    treeroot.clear()
+
+if args.remove:
+    for rm in args.remove:
+        for act in treeroot:
+            if act.find("unique-id").text == rm:
+                treeroot.remove(act)
+                print(rm + ": removed")
+                break
+
+# add actions
+addall = []
+if args.add_all or args.replace_all:
+    addall = list(actionslist)
+elif args.add:
+    for act in list(dict.fromkeys(args.add)):
+        if act in actionslist:
+            addall = addall + [act]
+
+for act in addall:
+    toadd = actionslist[act]
+    for action in treeroot:
+        if action.find("unique-id").text == toadd.find("unique-id").text:
+            toadd = None
+            break
+    if toadd:
+        treeroot.append(toadd)
+
+
+with open(ucafile, mode="wb") as tf:
+    tf.write(ET.tostring(tree.getroot(), encoding='utf8', method='xml'))
+
+

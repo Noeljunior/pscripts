@@ -1,0 +1,9 @@
+<action>
+	<icon>insert-link-symbolic</icon>
+	<name>Symlink</name>
+	<unique-id>1484527120070378-2</unique-id>
+	<command>pysymlink</command>
+	<description>Create a symbolic link based on clipboard</description>
+	<patterns>*</patterns>
+	<directories/>
+</action>
