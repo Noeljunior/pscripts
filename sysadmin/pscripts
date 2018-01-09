@@ -90,7 +90,8 @@ if __name__ == "__main__":
                 continue
 
             # add this dir to the final PATH
-            paths.add(dstroot)
+            if not noexec:
+                paths.add(dstroot)
 
             # install files
             for file in dstfiles:
