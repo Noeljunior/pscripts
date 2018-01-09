@@ -1,0 +1,12 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=WPS Office Cleaner
+Exec=wpscleaner
+Comment=Cleans up the wps-office backup files
+GenericName=WPS Office Cleaner
+Icon=x-office-document-symbolic
+Categories=Utility
+Type=Application
+Terminal=false
+StartupNotify=false
+Path=%d
