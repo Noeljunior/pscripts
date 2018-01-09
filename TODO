@@ -1,3 +1,6 @@
-- a way of installing this scripts to path and make ip updateable by git revision
 - a way of running archlinux/linux specific fixes/features
+- username changer scripts
+- pscrits/systemd-services installation script
+
+# DONE / NO LONGER NEDEED / WONT DO
 - everytime xflock is updated, run a hook to patch it
