@@ -8,6 +8,8 @@ from shutil import copyfile
 
 desout = expanduser("~/.local/share/applications/")
 desin = join(realpath(dirname(__file__)), "desktop-entries")
+mimesdb = expanduser("~/.local/share/mime")
+desktopdb = expanduser("~/.local/share/applications/")
 
 # TODO wineaps:
 # application/wps-office.dps;application/wps-office.dpt;application/wps-office.ppt;application/wps-office.pot;application/vnd.ms-powerpoint;application/vnd.mspowerpoint;application/mspowerpoint;application/powerpoint;application/x-mspowerpoint;application/wps-office.pptx;application/wps-office.potx;
@@ -41,7 +43,7 @@ parser.add_argument("--remove", metavar="NAME", nargs="+",
 
 args = parser.parse_args()
 
-
+# srun
 from subprocess import Popen, PIPE
 def srun(command, parallel = False):
     if parallel:
@@ -100,6 +102,8 @@ for m in toadd:
 
     copyfile(entries[m], dst)
 
-
+# update mimes/desktop
+srun('update-mime-database "{}"'.format(mimesdb))
+srun('update-desktop-database "{}"'.format(desktopdb))
 
 
