@@ -1,0 +1,12 @@
+[Unit]
+Description=Nextcloud cron timer
+
+[Timer]
+Persistent=true # fire now if last missed
+#OnCalendar=*-*-* *:0/15:00
+OnBootSec=5min
+OnUnitActiveSec=15min
+
+[Install]
+WantedBy=timers.target
+

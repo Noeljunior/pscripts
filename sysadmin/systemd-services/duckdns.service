@@ -1,0 +1,6 @@
+[Unit]
+Description=Duckdns cron
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/curl --silent -k 'https://www.duckdns.org/update?domains=marilix&token=4d4dd4f1-31de-491e-8103-2301081d6501&ip='

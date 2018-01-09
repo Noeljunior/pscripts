@@ -1,0 +1,11 @@
+[Unit]
+Description=Duckdns timer
+
+[Timer]
+#Persistent=true # fire now if last missed
+#OnCalendar=*-*-* *:0/30:00
+OnBootSec=5min
+OnUnitActiveSec=30min
+
+[Install]
+WantedBy=timers.target

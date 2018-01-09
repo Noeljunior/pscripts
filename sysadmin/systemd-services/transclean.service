@@ -1,0 +1,9 @@
+[Unit]
+Description=Remove done jobs from transmission
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/sh /home/beeserving/pscripts/transclean
+
+[Install]
+WantedBy=multi-user.target
