@@ -1,0 +1,58 @@
+#!/bin/python3
+from sys import argv
+
+
+# parse the args
+from argparse import ArgumentParser
+parser = ArgumentParser()
+parser.add_argument("mailto",
+                    help='mailto: url')
+parser.add_argument("--print", action="store_true",
+                    help='Prints the formatted url')
+parser.add_argument("--chromium", action="store_true",
+                    help='Launch chromium')
+parser.add_argument("--firefox", action="store_true",
+                    help='Launch firefox')
+
+args = parser.parse_args()
+
+from subprocess import Popen, PIPE
+def srun(command, parallel = False):
+    if parallel:
+        process = Popen(command, stdout=PIPE, shell=True)
+        return process
+    else:
+        process = Popen(command, stdout=PIPE, shell=True)
+        return process.communicate()[0].strip().decode("utf-8"), process.returncode
+
+gmailurl = """https://mail.google.com/mail/u/0/?view=cm&fs=1&tf=1&to={to}&bcc={bcc}&cc={cc}&su={subject}&body={body}"""
+
+sample = args.mailto.replace(" ", "")
+#fg, fg, sample = sample.partition("mailto:")
+mail, fg, sample = sample.partition("?")
+opts = sample.split("&")
+
+parts = {"cc=" : "", "bcc=" : "", "subject=" : "", "body=" : ""}
+
+for part in ["cc=", "bcc=", "subject=", "body="]:
+    for opt in opts:
+        if part in opt:
+            parts[part] = opt.replace(part, "")
+
+gmailurl = gmailurl.format(
+    to = mail,
+    cc = parts["cc="],
+    bcc = parts["bcc="],
+    subject = parts["subject="],
+    body = parts["body="],
+)
+
+if args.print:
+    print(gmailurl)
+
+if args.chromium:
+    srun('chromium "{}"'.format(gmailurl), True)
+
+
+
+
