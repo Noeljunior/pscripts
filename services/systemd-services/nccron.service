@@ -1,7 +1,0 @@
-[Unit]
-Description=Nextcloud cron
-
-[Service]
-Type=simple
-#ExecStart=/usr/bin/curl --silent -k https://127.0.0.1/cron.php > /dev/null
-ExecStart=/usr/bin/curl --silent -k https://beeservy.duckdns.org/cron.php

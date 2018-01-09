@@ -1,2 +1,0 @@
-liam@liamarch /usr/bin % sudo awk '/xscreensaver-command -lock/ { print "    \"dm-tool lock\" \\" }1' /usr/bin/xflock4  
-
