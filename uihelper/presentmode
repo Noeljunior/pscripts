@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# TODO if the property does not already exits, create it
+#   xfconf-query -c xfce4-power-manager --create --type bool -p /xfce4-power-manager/presentation-mode -s true
 
 function presentationmode() {
     if  [ "$1" = "true" ] ; then
@@ -9,7 +11,7 @@ function presentationmode() {
         xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/presentation-mode -s false
         notify-send -i gnome-power-manager "Presentation mode is off"
     else
-        echo "unknown rotation"
+        echo "unknown value. possibilities: 'true' 'false'"
     fi;
 }
 
