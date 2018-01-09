@@ -52,7 +52,8 @@ if args.print:
 
 if args.chromium:
     srun('chromium "{}"'.format(gmailurl), True)
-
+else:
+    srun('exo-open "{}"'.format(gmailurl), True)
 
 
 
