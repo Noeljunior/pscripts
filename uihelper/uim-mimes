@@ -9,12 +9,7 @@ from shutil import copyfile
 mimesout = expanduser("~/.local/share/applications/")
 mimesin = join(realpath(dirname(__file__)), "mime")
 mimesdb = expanduser("~/.local/share/mime")
-
-# TODO wineaps:
-# application/wps-office.dps;application/wps-office.dpt;application/wps-office.ppt;application/wps-office.pot;application/vnd.ms-powerpoint;application/vnd.mspowerpoint;application/mspowerpoint;application/powerpoint;application/x-mspowerpoint;application/wps-office.pptx;application/wps-office.potx;
-# application/wps-office.et;application/wps-office.ett;application/wps-office.xls;application/wps-office.xlt;application/vnd.ms-excel;application/msexcel;application/x-msexcel;application/wps-office.xlsx;application/wps-office.xltx;
-# application/wps-office.wps;application/wps-office.wpt;application/wps-office.doc;application/wps-office.dot;application/vnd.ms-word;application/msword;application/x-msword;application/msword-template;application/wps-office.docx;application/wps-office.dotx;application/rtf;
-
+desktopdb = expanduser("~/.local/share/applications/")
 
 # parse the args
 parser = ArgumentParser()
@@ -102,8 +97,9 @@ for m in toadd:
 
     copyfile(mimes[m], dst)
 
-# update mimes
+# update mimes/desktop
 srun('update-mime-database "{}"'.format(mimesdb))
+srun('update-desktop-database "{}"'.format(desktopdb))
 
 
 
