@@ -1,0 +1,233 @@
+#!/bin/python3
+
+# this is a way of installing/replacing/distributing config files
+
+# DEPS: python3 sudo
+
+# TODO
+#   - restore
+#   - diff
+#   - auto delete all empty backup dirs
+#   - implement wildcard-like behaviour and -r for recursive
+# DONE?
+#   - copy a file OR dir recursively; ask before doing it
+#   - delete backup
+
+import argparse
+from configparser import ConfigParser, ExtendedInterpolation
+from string import Template
+import os
+import sys
+import subprocess
+import getpass
+import time
+import pprint
+
+import collections
+
+
+_MEPATH = os.path.dirname(os.path.abspath(__file__))
+_ROOT = os.path.join(_MEPATH, "ROOT")
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#
+#                                  PSEUDO-LIBS
+#
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# shell run
+def srun(command, parallel = False):
+    if parallel:
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
+        return process
+    else:
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
+        return process.communicate()[0].strip().decode("utf-8"), process.returncode
+
+def sprun(command):
+    return srun(command, True)
+
+def srunning(process):
+    return proc.poll() is None
+
+def swait(process):
+    process.wait()
+
+def sret(process):
+    return process.communicate()[0].strip().decode("utf-8"), process.returncode
+
+def skill(process):
+    process.kill()
+
+def shallcontinue(question, default=False, abort = "Invalid option."):
+    valid = {"yes": True, "y": True, "ye": True, "no": False, "n": False, True: True, False: False}
+    if default is None:
+        prompt = " [y/n] "
+    elif default == True:
+        prompt = " [Y/n] "
+    elif default == False:
+        prompt = " [y/N] "
+    else:
+        raise ValueError("invalid default answer: '%s'" % default)
+
+    while True:
+        sys.stdout.write(question + prompt)
+        choice = input().lower()
+        if default is not None and choice == '':
+            return valid[default]
+        elif choice in valid:
+            return valid[choice]
+        else:
+            if abort is None:
+                sys.stdout.write("Please respond with 'yes' or 'no' "
+                             "(or 'y' or 'n').\n")
+            else:
+                print(abort)
+                sys.exit(1)
+
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#
+#                                  ACTIONS
+#
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+def checkpaths(path):
+    path = os.path.abspath(path)
+
+    ispdir = None
+    isddir = None
+
+    # detect whenever this is a file or a dir
+    if os.path.isdir(path):
+        ispdir = True
+        #print("WARNING: This is a directory and this also affects all its contents!")
+    elif os.path.isfile(path):
+        ispdir = False
+    #else:
+        #print("This is not a valid path.")
+        #sys.exit(0)
+
+    # compute the destination directory
+    if (path.startswith(os.path.expanduser("~"))):
+        dst = path.replace(os.path.expanduser("~"), "home/user", 1)
+    else:
+        dst = path[1:]
+    dst = os.path.join(_ROOT, dst)
+
+    if os.path.isdir(dst):
+        isddir = True
+        #print("WARNING: This is a directory and this also affects all its contents!")
+    elif os.path.isfile(dst):
+        isddir = False
+
+    return path, dst, ispdir, isddir
+
+def backup(path):
+    cmd = 'mkdir -p "{}" && cp -r "{}" "{}"'
+
+    path, dst, ispdir, isddir = checkpaths(path)
+
+    if ispdir is None:
+        print("File not found or not enough permission")
+        sys.exit(0)
+    elif ispdir:
+        print("WARNING: This is a directory; continuing affects all its contents!")
+
+    # check that this is the first backup
+    if isddir is not None:
+        if ispdir and isddir:
+            if shallcontinue("There is already a backup. Replacing deletes recursively. Replace? "):
+                # TODO delete the dst backup
+                pass
+            else:
+                sys.exit(0)
+        elif not ispdir and not isddir:
+            if shallcontinue("There is already a backup. Replace? "):
+                # TODO delete the dst backup
+                pass
+            else:
+                sys.exit(0)
+        else:
+            print("It looks that there is already a backup but the given path and the backup are not both files nor directories. Check that before continue.")
+            sys.exit(1)
+
+
+    if not shallcontinue("Are you sure you want to backup this {}?".format("directory and its contents" if isddir else "file")):
+        sys.exit(0)
+    srun(cmd.format(os.path.dirname(dst), path, dst))
+
+    print("Done")
+
+def delete(path):
+    cmd = 'rm -r "{}"'
+
+    path, dst, ispdir, isddir = checkpaths(path)
+
+    if isddir is None:
+        print("No backup found for the given path")
+        sys.exit(0)
+    elif isddir:
+        print("WARNING: This is a directory; continuing affects all its contents!")
+
+    if not shallcontinue("Are you sure you want to delete this backup{}? ".format(" and all its contents" if isddir else "")):
+        sys.exit(0)
+
+    srun(cmd.format(dst))
+
+    print("Done")
+
+def restore(path):
+    cmd = 'mkdir -p "{}" && cp -r "{}" "{}"'
+
+    path, dst, ispdir, isddir = checkpaths(path)
+
+    if isddir is None:
+        print("No backup found for the given path")
+        sys.exit(0)
+    elif isddir:
+        print("WARNING: This is a directory; continuing affects all its contents!")
+
+    if not shallcontinue("Are you sure you want to RESTORE this backup{}? ".format(" and all its contents" if isddir else "")):
+        sys.exit(0)
+
+    srun(cmd.format(os.path.dirname(path), dst, path))
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#
+#                                    MAIN
+#
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+if __name__ == "__main__":
+    # parse the args
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--backup", metavar="PATH", nargs=1,
+                        help="Backups PATH recursively")
+    parser.add_argument("--delete", metavar="PATH", nargs=1,
+                        help="Deletes the backup of PATH recursively")
+    parser.add_argument("--restore", metavar="PATH", nargs=1,
+                        help="Restores the backup to PATH recursively")
+    args = parser.parse_args()
+
+    if args.backup:
+        backup(args.backup[0])
+
+    if args.delete:
+        delete(args.delete[0])
+
+    if args.restore:
+        restore(args.restore[0])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
