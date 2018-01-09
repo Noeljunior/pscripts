@@ -11,6 +11,8 @@
 #   - option to initialize a prefix with an empty config file
 #   - check for necessary items to creating a launcher or bin before doing it
 #   - apps to add: gta:sa; nfs:mw, trackmania:nf
+#   - from... import
+#   - diable the creations of dosdevices AND to user's home symlinks
 
 import argparse
 from configparser import ConfigParser, ExtendedInterpolation
@@ -30,6 +32,8 @@ _PREFIX_CONFIG = "wineapp.cfg"
 _LAUNCHER_PATH = "~/.local/share/applications/"
 _BIN_PATH = "~/.config/wineappsbins"
 _BIN_PERM = 0o755
+_MIMESDB = os.path.expanduser("~/.local/share/mime")
+_DESKTOPENTRIESDB = os.path.expanduser("~/.local/share/applications/")
 
 
 def loadconfig(path, errorstr = "Error.", exit = True, addroot = True, defaults = {}):
@@ -148,7 +152,7 @@ _BIN_PERM      = getconfig(config, "ROOT", "bin_perm",      _BIN_PERM)
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 def desktopentry(prefix, app, prefixpath, name = "", cmd = "", comment = "",
-                 genericname = "", icon = "", category = "", path = ""):
+                 genericname = "", icon = "", category = "", mime = "", path = ""):
     # prepare args
     icon = os.path.normpath(icon)
 
@@ -158,20 +162,23 @@ def desktopentry(prefix, app, prefixpath, name = "", cmd = "", comment = "",
     installpath = os.path.join(os.path.expanduser(_LAUNCHER_PATH),
         "WA_{prefix}_{app}.desktop".format(prefix = prefix, app = app))
 
+    if len(path) > 0:
+        path = "Path={}".format(path)
+
     # build string
     str_launcher = """
 [Desktop Entry]
-Encoding=UTF-8
 Name={name}
 Exec={cmd}
 Comment={comment}
 GenericName={genericname}
 Icon={icon}
 Categories={category}
+MimeType={mime}
 Type=Application
 Terminal=false
 StartupNotify=false
-Path={path}
+{path}
 """[1:-1].format(
         name        = name,
         cmd         = cmd,
@@ -179,6 +186,7 @@ Path={path}
         genericname = genericname,
         icon        = icon,
         category    = category,
+        mime        = mime,
         path        = path,
     )
 
@@ -187,7 +195,7 @@ Path={path}
 
 def binentry(name = "", cmd = ""):
     if not os.path.isdir(_BIN_PATH):
-        print("Invalid bin path ({}). Skiping it".format(_BIN_PATH))
+        #print("Invalid bin path ({}). Skiping it".format(_BIN_PATH))
         return False
 
     # prepare args
@@ -209,7 +217,7 @@ def binentry(name = "", cmd = ""):
 
 def symlink(src, dst, remove = False):
     if remove:
-        res, ret = srun('rm "{}"'.format(dst))
+        res, ret = srun('rm -r "{}"'.format(dst))
         #if ret != 0:
         #    return res, ret
     return srun('ln -s "{}" "{}"'.format(src, dst))
@@ -273,7 +281,10 @@ def install(prefix):
     if len(prefixes) <= 0:
         print("No prefixes selected or found")
         return
-    
+
+    if not os.path.isdir(_BIN_PATH):
+        print("Invalid bin path ({}). Won't install any bin".format(_BIN_PATH))
+
     # for each prefix...
     for prefix, path in prefixes.items():
         path = os.path.expanduser(path)
@@ -299,6 +310,7 @@ def install(prefix):
                 genericname = getconfig(prefixconfig, app, "launcher_genericname"),
                 icon        = getconfig(prefixconfig, app, "launcher_icon"),
                 category    = getconfig(prefixconfig, app, "launcher_category"),
+                mime        = getconfig(prefixconfig, app, "launcher_mime"),
                 path        = getconfig(prefixconfig, app, "launcher_path"),
             )
             print("Created launcher for {}/{}.".format(prefix, app))
@@ -316,6 +328,10 @@ def install(prefix):
         # fix prefix
         fixprefix(prefix, path)
         print("Fixed the prefix {}.".format(prefix))
+
+    # update mime-types/desktop-entries
+    srun('update-mime-database "{}"'.format(_MIMESDB))
+    srun('update-desktop-database "{}"'.format(_DESKTOPENTRIESDB))
 
 def cleanall():
     srun(os.path.expanduser('rm -f ~/.local/share/mime/packages/x-wine*'))
