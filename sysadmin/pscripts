@@ -3,121 +3,110 @@
 import os
 import sys
 import subprocess
+import argparse
+
+# TODO
+#   - make it install specific non-exectuable files/dirs
+#   - from .. import ...
+
+#   .pignore   : ignores all files, continue the search in depth
+#   .pignoreall: ignores the dir and sub dir
+#   .pnoexec   : the files in this dir will be installed as non-executables
 
 pscripstroot = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
-def computepath(startpath):
-    path = set([])
-    for root, dirs, files in os.walk(startpath, topdown=True):
-        if os.path.basename(root).startswith(".") or \
-           ".pignoreall" in files:
-            dirs[:] = []
-            continue 
+_INSTALLPATH = '/opt/pscripts'
+_PROFILEPATH = '/etc/profile.d/pscripts.sh'
 
-        if ".pignore" in files:
-            continue
 
-        path.add(root)
-    return ':' + ':'.join(path)
-
-def installdir(path):
-    if subprocess.call('install -m 755 -d "{}"'.format(path), shell=True) is not 0:
+def installdir(pathm, perm = "755"):
+    if subprocess.call('install -m {} -d "{}"'.format(perm, path), shell=True) is not 0:
         sys.exit(1)
-def installfile(path, file):
-    if subprocess.call('install -D -m 755 -t "{}" "{}"'.format(path, file), shell=True) is not 0:
+def installfile(path, file, perm = "755"):
+    if subprocess.call('install -D -m {} "{}" "{}"'.format(perm, path, file), shell=True) is not 0:
         sys.exit(1)
 
-if len(sys.argv) < 2:
-    print("ERROR: give one action: 'update-path', 'update', 'root' or 'install'")
-    sys.exit(1)
+
+if __name__ == "__main__":
+    # parse the args
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--install", metavar="PATH", nargs='?', const=_INSTALLPATH,
+                        help='installs to the PATH (defaults to "{}")'.format(_INSTALLPATH))
+    parser.add_argument("--profile", metavar="PATH", default=_PROFILEPATH,
+                        help='Path to install the environment script (defaults to "{}")'.format(_PROFILEPATH))
+    parser.add_argument("--root", action="store_true", default = False,
+                        help="Prints the root location of these scripts")
+    parser.add_argument("--print", action="store_true", default = False,
+                        help="Prints the paths that will be added")
+    parser.add_argument("--only-exec", action="store_true", default = False,
+                        help="Only installs the files that are executables. " +
+                        "This may break some utilities")
+    args = parser.parse_args()
 
 
-if sys.argv[1] == "update-path":
-    filesh = '/etc/profile.d/pscripts.sh'
-    cmd = "echo 'export PATH=$PATH{}' > '{}' && chmod +x '{}'".format(
-        computepath(pscripstroot), filesh, filesh)
-
-    if (os.geteuid() >= 1000):
-        print('You need root privileges to do this.')
-        process = subprocess.Popen("sudo {} update-path".format(sys.argv[0]), shell=True)
-        process.wait()
+    if args.root:
+        print(pscripstroot)
         sys.exit(0)
 
-    process = subprocess.Popen(cmd, shell=True)
-    process.wait()
 
-    print("Done.")
+    if args.install:
+        args.install = os.path.abspath(args.install)
+        args.profile = os.path.abspath(args.profile)
 
-elif sys.argv[1] == "update":
-    process = subprocess.Popen("git reset --hard && git pull", cwd=root, shell=True)
-    process.wait()
-elif sys.argv[1] == "root":
-    print(pscripstroot)
-elif sys.argv[1] == "install": # install as a system package
-    #if (os.geteuid() >= 1000):
-    #    print('You need root privileges to do this.')
-    #    sys.exit(1)
+        print('Installing to "{}" and "{}"...'.format(args.install, args.profile))
 
-    try:
-        installlocation = sys.argv[2]
-    except IndexError:
-        installlocation = "/opt/pscripts"
-        print("Installing to: '{}'".format(installlocation))
+        paths = set([])
+        for srcroot, dirs, files in os.walk(pscripstroot, topdown=True):
+            if os.path.basename(srcroot).startswith(".") or \
+               ".pignoreall" in files:
+                dirs[:] = []
+                continue
 
-    try:
-        pathlocation = sys.argv[3]
-    except IndexError:
-        pathlocation = "/opt/pscripts"
+            if ".pignore" in files:
+                continue
 
-    try:
-        pathfile = sys.argv[4]
-    except IndexError:
-        pathfile = "/etc/profile.d/pscripts.sh"
+            noexec = False
+            if ".pnoexec" in files:
+                noexec = True
 
+            # compute destination dir
+            dstroot = os.path.normpath(os.path.join(args.install, os.path.relpath(srcroot, pscripstroot)))
 
-    installdir(installlocation)
+            # print only
+            if args.print:
+                print(dstroot)
+                continue
 
-    paths = set([])
-    for root, dirs, files in os.walk("./", topdown=True):
-        if os.path.basename(root).startswith(".") or \
-           ".pignoreall" in files:
-            dirs[:] = []
-            continue
+            # compute destination files
+            dstfiles = set([])
+            for file in files:
+                #print(file)
+                srcfile = os.path.normpath(os.path.join(srcroot, file))
+                dstfile = os.path.normpath(os.path.join(dstroot, file))
+                if not args.only_exec or os.access(dstfile, os.X_OK):
+                    dstfiles.add((srcfile, dstfile))
 
-        if ".pignore" in files:
-            continue
+            if len(dstfiles) < 1:
+                continue
 
-        # compute destination dir
-        rootdest = os.path.normpath(os.path.join(installlocation, root))
+            # add this dir to the final PATH
+            paths.add(dstroot)
 
-        # compute destination files
-        filesdest = set([])
-        for file in files:
-            filedest = os.path.normpath(os.path.join(root, file))
-            if os.access(filedest, os.X_OK):
-                filesdest.add(filedest)
+            # install files
+            for file in dstfiles:
+                installfile(file[0], file[1], "644" if noexec else "755")
 
-        if len(filesdest) < 1:
-            continue
+        # build path
+        if len(paths) > 0:
+            installfile("/dev/null", args.profile)
+            with open(args.profile, 'w') as f:
+                f.write('export PATH=$PATH:{}'.format(':'.join(paths)))
+        sys.exit(0)
 
-        # add this dir to the final PATH
-        paths.add(os.path.normpath(os.path.join(pathlocation, root)))
+    #if args.restore:
+    #    restore(args.restore[0])
 
-        # install dir
-        #installdir(rootdest)
-
-        # install files
-        for file in filesdest:
-            installfile(rootdest, file)
-
-    # build path
-    with open("./pscripts.sh", 'w') as f:
-        f.write('export PATH=$PATH:{}'.format(':'.join(paths)))
-
-    installfile(pathfile, "pscripts.sh")
-
+    # exit
     sys.exit(0)
-else:
-    print("'{}' is not a valid action.".format(sys.argv[1]))
-    sys.exit(1)
-sys.exit(1)
+
+

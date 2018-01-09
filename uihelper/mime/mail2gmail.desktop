@@ -1,0 +1,13 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Mailto:Gmail
+Exec=mail2gmail %U
+Type=Application
+Terminal=false
+Categories=Network;Email;
+MimeType=x-scheme-handler/mailto;
+NoDisplay=true
+
+[Desktop Action ComposeMessage]
+Name=Write new message
+Exec=mail2gmail "?"
