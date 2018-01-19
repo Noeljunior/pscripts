@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Unlock PDF
+Exec=pdftools-unlock %F
+Comment=Removes any lock on PDF
+GenericName=PDF Unlocker
+Icon=application-pdf
+Categories=Utility
+Type=Application
+Terminal=false
+StartupNotify=false
+MimeType=application/pdf;
+NoDisplay=true
