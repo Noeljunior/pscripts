@@ -1,7 +1,7 @@
 <action>
 	<icon>application-pdf</icon>
 	<name>Combine PDFs</name>
-	<unique-id>1516379651402054-1</unique-id>
+	<unique-id>1516381738742348-1</unique-id>
 	<command>pdfshuffler %F</command>
 	<patterns>*.pdf;*.PDF;*.Pdf;*.PDf;*.PdD;*.pDF;*.pdF</patterns>
 	<other-files/>
