@@ -56,7 +56,9 @@ def srun(command, parallel = False):
 
 def findallde(path):
     des = {}
-    for file in listdir(path):
+    listdirs = listdir(path)
+    listdirs.sort()
+    for file in listdirs:
         if not isfile(join(path, file)):
             continue
         if not file.endswith(".desktop"):

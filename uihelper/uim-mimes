@@ -50,7 +50,9 @@ def srun(command, parallel = False):
 
 def findallmimes(path):
     mimes = {}
-    for file in listdir(path):
+    listdirs = listdir(path)
+    listdirs.sort()
+    for file in listdirs:
         if not isfile(join(path, file)):
             continue
         fpath = join(path, file)

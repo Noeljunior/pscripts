@@ -37,7 +37,9 @@ if args.actions:
 # read actions
 #print(actions)
 actionslist = {}
-for fnaction in listdir(actions):
+listdirs = listdir(actions)
+listdirs.sort()
+for fnaction in listdirs:
     paction = join(actions, fnaction)
     #print(fnaction)
      
