@@ -1,0 +1,75 @@
+#!/bin/python3
+
+from argparse import ArgumentParser
+from os.path import splitext, exists, isfile
+from sys import exit
+
+import gi
+gi.require_version('Notify', '0.7')
+from gi.repository import Notify
+
+# deps: qpdf
+
+# parse the args
+parser = ArgumentParser()
+
+parser.add_argument("input", metavar="INPUT",
+                    help='Path to the locked PDF')
+parser.add_argument("output", metavar="OUTPUT", nargs="?",
+                    help='Path to the unlocked PDF')
+
+args = parser.parse_args()
+
+# notifications
+Notify.init("pysymlink")
+notification = Notify.Notification.new("")
+
+# srun
+from subprocess import Popen, PIPE
+def srun(command, parallel = False):
+    if parallel:
+        process = Popen(command, stdout=PIPE, shell=True)
+        return process
+    else:
+        process = Popen(command, stdout=PIPE, stderr=PIPE, shell=True)
+        out, err = process.communicate()
+        return out.strip().decode("utf-8"), err.strip().decode("utf-8"), process.returncode
+
+src = args.input
+dst = args.output if args.output else splitext(src)[0] + "-unclocked.pdf"
+
+
+
+
+if not isfile(src):
+    print(src + ": no such file")
+    notification.update("No such file" , src, "dialog-error-symbolic")
+    notification.show()
+    exit(1)
+
+if isfile(dst):
+    print(dst + ": output file exists")
+    notification.update("Output file exists" , dst, "dialog-error-symbolic")
+    notification.show()
+    exit(1)
+
+out, err, erno = srun('qpdf --decrypt "{}" "{}"'.format(src, dst))
+
+if isfile(dst):
+    erno = 0
+
+if erno != 0:
+    print("Unknow error!")
+    print(err)
+    notification.update("Unknow error! " , err, "dialog-error-symbolic")
+    notification.show()
+    exit(1)
+
+if err != "":
+    err = "\n\n" + err
+
+notification.update("PDF unlocked" , dst + err, "dialog-information-symbolic")
+notification.show()
+
+
+

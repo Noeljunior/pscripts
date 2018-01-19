@@ -5,7 +5,7 @@ if   [[ $1 == *"standalone"* ]] ; then
     xrandr --output HDMI1 --off --output VIRTUAL1 --off --output eDP1 --primary --mode 1920x1080 --pos 0x0 --rotate normal
     #xfconf-query -c xfce4-panel -p /panels/panel-1/output-name -s monitor-0
 elif [[ $1 == *"home"* ]] ; then
-    xrandr --output HDMI1 --mode 1920x1080 --pos 0x0 --rotate normal --output VIRTUAL1 --off --output eDP1 --primary --mode 1920x1080 --pos 0x1080 --rotate normal
+    xrandr --output HDMI1 --primary --mode 1920x1080 --pos 1920x0 --rotate normal --output VIRTUAL1 --off --output eDP1 --mode 1920x1080 --pos 0x0 --rotate normal
     #xfconf-query -c xfce4-panel -p /panels/panel-1/output-name -s monitor-0
 elif [[ $1 == *"didi"* ]] ; then
     xrandr --output HDMI1 --mode 1920x1080 --pos 1366x0 --rotate normal --output LVDS1 --mode 1366x768 --pos 0x163 --rotate normal --output VIRTUAL1 --off --output DP1 --off --output VGA1 --off
