@@ -2,7 +2,7 @@
 	<icon>application-pdf</icon>
 	<name>Unlock PDF</name>
 	<unique-id>1516379180658640-1</unique-id>
-	<command>pdftools-unlock %F</command>
+	<command>pdftools-unlock %f</command>
 	<description>Try to unclock any PDF&apos;s lock</description>
 	<patterns>*.pdf;*.PDF;*.Pdf;*.PDf;*.PdD;*.pDF;*.pdF</patterns>
 	<other-files/>

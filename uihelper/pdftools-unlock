@@ -21,7 +21,7 @@ parser.add_argument("output", metavar="OUTPUT", nargs="?",
 args = parser.parse_args()
 
 # notifications
-Notify.init("pysymlink")
+Notify.init("pdftoolsrmlinks")
 notification = Notify.Notification.new("")
 
 # srun
@@ -61,7 +61,7 @@ if isfile(dst):
 if erno != 0:
     print("Unknow error!")
     print(err)
-    notification.update("Unknow error! " , err, "dialog-error-symbolic")
+    notification.update("Unknow error!" , err, "dialog-error-symbolic")
     notification.show()
     exit(1)
 
