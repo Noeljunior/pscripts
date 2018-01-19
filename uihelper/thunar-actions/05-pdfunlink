@@ -1,0 +1,8 @@
+<action>
+	<icon>application-pdf</icon>
+	<name>Unlink PDF</name>
+	<unique-id>1516379651402054-1</unique-id>
+	<command>pdftools-unlink %f</command>
+	<patterns>*.pdf;*.PDF;*.Pdf;*.PDf;*.PdD;*.pDF;*.pdF</patterns>
+	<other-files/>
+</action>
