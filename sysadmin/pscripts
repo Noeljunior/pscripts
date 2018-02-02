@@ -34,6 +34,8 @@ if __name__ == "__main__":
                         help='installs to the PATH (defaults to "{}")'.format(_INSTALLPATH))
     parser.add_argument("--profile", metavar="PATH", default=_PROFILEPATH,
                         help='Path to install the environment script (defaults to "{}")'.format(_PROFILEPATH))
+    parser.add_argument("--rm-prefix", metavar="PATH",
+                        help='Remove PATH from generated paths (workaround for arch linux)')
     parser.add_argument("--root", action="store_true", default = False,
                         help="Prints the root location of these scripts")
     parser.add_argument("--print", action="store_true", default = False,
