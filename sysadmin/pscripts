@@ -56,6 +56,8 @@ if __name__ == "__main__":
         args.profile = os.path.abspath(args.profile)
 
         print('Installing to "{}" and "{}"...'.format(args.install, args.profile))
+        if args.rm_prefix:
+            print('Cutting "{}" from paths'.format(args.rm_prefix))
 
         paths = set([])
         for srcroot, dirs, files in os.walk(pscripstroot, topdown=True):
@@ -76,7 +78,7 @@ if __name__ == "__main__":
 
             # print only
             if args.print:
-                print(dstroot)
+                print(dstroot[len(args.rm_prefix):] if args.rm_prefix and dstroot.startswith(args.rm_prefix) else dstroot)
                 continue
 
             # compute destination files
@@ -93,7 +95,7 @@ if __name__ == "__main__":
 
             # add this dir to the final PATH
             if not noexec:
-                paths.add(dstroot)
+                paths.add(dstroot[len(args.rm_prefix):] if args.rm_prefix and dstroot.startswith(args.rm_prefix) else dstroot)
 
             # install files
             for file in dstfiles:
