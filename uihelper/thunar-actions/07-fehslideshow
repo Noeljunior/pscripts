@@ -2,7 +2,7 @@
 	<icon>multimedia-photo-viewer</icon>
 	<name>Slideshow</name>
 	<unique-id>1528402346632235-1</unique-id>
-	<command>feh --theme %F</command>
+	<command>feh --theme slideshow %F</command>
 	<patterns>*</patterns>
 	<directories/>
 	<image-files/>
