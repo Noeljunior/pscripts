@@ -6,3 +6,5 @@ DST="$2"
 ESRC=$(echo "$SRC" | sed 's/\/$//')
 
 sudo rsync -aAXvP --exclude={"$ESRC/dev/*","$ESRC/proc/*","$ESRC/sys/*","$ESRC/tmp/*","$ESRC/run/*","$ESRC/mnt/*","$ESRC/media/*","$ESRC/swapfile","$ESRC/lost+found"} "$SRC/" "$DST"
+
+#sudo tar --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found"} --xattrs -czpvf - / | ssh zm@beeservy "cat >/home/zm/201907222251_BACKUP_zmix.tar.gz"
