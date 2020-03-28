@@ -1,4 +1,4 @@
-#!/bin/python3
+#!/bin/python
 
 import os
 import sys
@@ -20,10 +20,10 @@ _PROFILEPATH = '/etc/profile.d/pscripts.sh'
 
 
 def installdir(pathm, perm = "755"):
-    if subprocess.call('install -m {} -d "{}"'.format(perm, path), shell=True) is not 0:
+    if subprocess.call('install -m {} -d "{}"'.format(perm, path), shell=True) != 0:
         sys.exit(1)
 def installfile(path, file, perm = "755"):
-    if subprocess.call('install -D -m {} "{}" "{}"'.format(perm, path, file), shell=True) is not 0:
+    if subprocess.call('install -D -m {} "{}" "{}"'.format(perm, path, file), shell=True) != 0:
         sys.exit(1)
 
 
