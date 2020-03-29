@@ -20,8 +20,8 @@ LATEST_DST="$SNAPSHOTS/$NAME-$LATEST"
 LATEST_LOG="$SNAPSHOTS/.$DATETIME-rsync.log"
 CURRENT_DST="$SNAP/$NAME-$DATETIME"
 
-echo "rsynching from \"$SRC\" to \"$LATEST_DST\""
-rsync $OPTS "$SRC" "$LATEST_DST" >> "$LATEST_LOG"
+echo "rsynching from \"$SOURCE\" to \"$LATEST_DST\""
+rsync $OPTS "$SOURCE" "$LATEST_DST" >> "$LATEST_LOG"
 
 echo "making hardlinks copies from \"$LATEST_DST\" to \"$CURRENT_DST\""
 cp -al "$LATEST_DST" "$CURRENT_DST"
