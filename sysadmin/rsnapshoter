@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# config
+SOURCE="$HOME/"
+SNAPSHOTS="$HOME/BACKUPS"
+LATEST="ÚLTIMO"
+
+OPTS="-rltgoi --delay-updates --delete --chmod=a-w " # readable, incremental, non-restorable
+#-aAHX # non-readable, non-incremental, restorable
+
+# read config from user TODO
+NAME="$1"
+SOURCE="$2"
+SNAPSHOTS="$3"
+LATEST="$4"
+
+# do the snapshot
+DATETIME=$(date +%Y%m%d_%H%M%S)
+LATEST_DST="$SNAPSHOTS/$NAME-$LATEST"
+LATEST_LOG="$SNAPSHOTS/.$DATETIME-rsync.log"
+CURRENT_DST="$SNAP/$NAME-$DATETIME"
+
+echo "rsynching from \"$SRC\" to \"$LATEST_DST\""
+rsync $OPTS "$SRC" "$LATEST_DST" >> "$LATEST_LOG"
+
+echo "making hardlinks copies from \"$LATEST_DST\" to \"$CURRENT_DST\""
+cp -al "$LATEST_DST" "$CURRENT_DST"
+
+# TODO delete older than
