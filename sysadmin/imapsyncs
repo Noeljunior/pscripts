@@ -1,0 +1,40 @@
+#!/bin/bash
+
+
+if [[ "${UID}" -eq 0 ]] ; then
+    echo "Do not run this as root!"
+    exit 1
+fi
+
+source "$HOME/.maildir/imapsyncs_config"
+fpass1="$HOME/.maildir/imapsyncs_pass1"
+fpass2="$HOME/.maildir/imapsyncs_pass2"
+
+echo "Downloding from $GUSER to local user $USER"
+
+imapsync \
+       --user1 "$GUSER" \
+       --passfile1 "$fpass1" \
+        --host1 "imap.gmail.com" \
+        --ssl1 \
+        --useheader "X-Gmail-Received" \
+        --useheader "Message-Id" \
+        --maxbytespersecond "20000" \
+        --automap \
+            --exclude "Com estrela" \
+            --exclude "Starred" \
+            --f1f2 "[Gmail]/Todo o correio=INBOX.Archive" \
+            --f1f2 "[Gmail]/All Mail=INBOX.Archive" \
+        --regextrans2 "s,\[Gmail\].,," \
+    --user2 "$USER" \
+    --passfile2 "$fpass2" \
+        --host2 "localhost" \
+        --nossl2 --notls2 \
+    --nofoldersizes --nofoldersizesatend --noresyncflags --nolog --subscribeall \
+    --noreleasecheck --no-modulesversion --debugssl 0 --noid
+
+echo "Finding duplicates and hardlinking: $HOME/.maildir"
+
+rdfind -makehardlinks true -makeresultsfile false  "$HOME/.maildir"
+
+echo "Done."
