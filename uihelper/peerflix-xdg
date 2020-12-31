@@ -5,3 +5,52 @@
 # Usage: peerflix-xdg <magnet URL>
 
 
+# kill any previous streamming
+# load configs (command line)
+# start downloading
+# enventually show some libnotify info
+# if more than 1 file, show a list and ask which one to stream
+# clean kill on SIGIT: https://unix.stackexchange.com/questions/478563/sleep-wait-and-ctrlc-propagation
+
+export TERM=xterm
+
+state=0
+pstate=0
+info=""
+
+if [ -f "$HOME/.config/peerflix-xdg.cfg" ]; then
+    source "$HOME/.config/peerflix-xdg.cfg"
+    echo "Config file sourced: $HOME/.config/peerflix-xdg.cfg"
+fi
+
+peerflix "$1" $params | {
+    while IFS= read -r line; do
+        # remove colours
+        #line=$(echo "$line" | sed -r 's/\x1b\[[0-9;]*[a-zA-Z]//g' )
+        #echo $line
+
+        # find usefull info and parse it
+        if [[ "$line" == *"Verifying"* ]]; then # verifying something
+            state=1
+        fi
+        if [[ "$line" == *"streaming"* ]]; then # streamming
+            state=2
+            info=$line
+        fi
+
+        # if TRIGGER then update output
+        if [[ "$state" != "$pstate" ]]; then
+            pstate=$state
+            info=$(echo "$info" | sed -r 's/\x1b\[[0-9;]*[a-zA-Z]//g' )
+
+            if [[ "$state" == "1" ]]; then # verifying something
+                notify-send "Buffering..." -i media-playback-pause
+            elif [[ "$state" == "2" ]]; then # streamming
+                notify-send "Streaming." "$info" -i media-playback-start
+            fi
+        fi
+    done
+
+    notify-send "Stream stopped." -i media-playback-stop
+}
+
