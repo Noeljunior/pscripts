@@ -1,0 +1,8 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=peerflix xdg handler
+Exec=peerflix-xdg %U
+Type=Application
+Terminal=false
+MimeType=x-scheme-handler/magnet;
+NoDisplay=true

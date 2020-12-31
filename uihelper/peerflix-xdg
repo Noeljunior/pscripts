@@ -1,0 +1,7 @@
+#!/bin/bash
+#
+# peerflix-xdg: magnet link handler
+#
+# Usage: peerflix-xdg <magnet URL>
+
+
